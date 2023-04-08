@@ -4,8 +4,16 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <stdint.h>
 
 void HashMain();
+
+struct HashTableNode
+{
+    char* content;
+    size_t length;
+    HashTableNode* next;
+};
 
 struct HashTable
 {
@@ -14,12 +22,9 @@ struct HashTable
     uint32_t (*hash_func) (const char*);
 };
 
-struct HashTableNode
-{
-    char* content;
-    size_t length;
-    HashTableNode* next;
-};
+
+const char input_filename[] = "data/input.txt";
+
 
 
 #endif
