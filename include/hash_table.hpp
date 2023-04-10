@@ -18,7 +18,7 @@ struct HashTableNode
 
 struct HashTable
 {
-    HashTableNode* array;
+    HashTableNode** array;
     size_t size;
     uint32_t (*hash_func) (const char*);
 };

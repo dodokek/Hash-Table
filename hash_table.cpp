@@ -5,8 +5,13 @@ void HashTableCtor (HashTable* self, size_t size, uint32_t (* hash_func)(const c
     assert (size > 0);
 
     self->size = size;
-    self->array = (HashTableNode*) calloc (size, sizeof (HashTable));
+    self->array = (HashTableNode**) calloc (size, sizeof (HashTable));
     self->hash_func = hash_func;
+
+    for (int i = 0; i < self->size; i++)
+    {
+        self->array[i] = nullptr;
+    }
 }
 
 
@@ -20,9 +25,12 @@ void HashTableDtor (HashTable* self)
 
 void AddMember (HashTable* self, char* member)
 {
-    uint32_t index = self->hash_func(member);
+    uint32_t index = self->hash_func(member) % self->size;
 
-    
+    if (self->array[index])
+    {
+        
+    }
 
 }
 
