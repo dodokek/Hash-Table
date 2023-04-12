@@ -4,13 +4,13 @@
 int main()
 {
     Text* InputStruct = (Text*) calloc (1, sizeof(Text));
-    FILE* input_file = get_file (input_filename, "r");
+    FILE* input_file = get_file (input_filename, "rb");
 
     GetLines (InputStruct, input_file);
 
     PrintLines (InputStruct->objects, InputStruct->obj_amount);
     
-    
+
     LOG ("Read file\n");
     
     HashTable* Table = (HashTable*) calloc (1, sizeof (HashTable));
@@ -22,6 +22,6 @@ int main()
         AddMember (Table, InputStruct->objects[i].begin);
     }
 
-    DumpTable (Table, 6);
+    DumpTable (Table, 200);
     close_file (input_file, input_filename);
 }

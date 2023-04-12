@@ -12,7 +12,7 @@
 #include "stringUtils.h"
 
 
-const int MAX_WORDS = 2000;
+const int MAX_WORDS = 10000;
 
 //-----------------------------------------------------------------------------
 

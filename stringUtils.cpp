@@ -7,9 +7,6 @@ void GetLines (Text* MainText, FILE* input_file)
     read_file (input_file, MainText);
 
     SplitOnWords (MainText);
-
-    separate_lines (MainText);
-
 }
 
 
@@ -34,52 +31,13 @@ void SplitOnWords (Text* MainText)
             MainText->buffer[i] = '\0';
             cur_len = 0;
             words_counter++; 
+
+            // printf ("Word: %s\n", MainText->objects[words_counter].begin);
         }
     }
 
-    MainText->obj_amount = words_counter;
+    MainText->obj_amount = words_counter - 1;
 }
-
-
-
-int separate_lines (Text *MainText)
-{
-    assert (MainText->buffer != nullptr && MainText->objects != NULL && MainText->symbols_amount > 0);
-
-    int lines_indx = 0, cur_len = 0;
-
-    char *cur_ptr = MainText->buffer;
-
-    char *end_ptr = cur_ptr + MainText->symbols_amount;
-
-    for (; cur_ptr != end_ptr; cur_ptr++)
-    {
-        cur_len++;
-                                                                                             //01234
-        // if (*cur_ptr == '\n' || *cur_ptr == ' ')
-        if (strchr (" \n.,!?", *cur_ptr))                                                                //abcd\ndef\n
-        {                                                                                    //\n
-            if (cur_len > 1) // ignore "\n"
-            {
-                MainText->objects[lines_indx].begin = cur_ptr - cur_len + 1;
-
-                MainText->objects[lines_indx].length    = cur_len;
-                *cur_ptr = '\0';
-                lines_indx++;
-            }
-
-            cur_len = 0;
-        }
-    }
-
-    MainText->obj_amount = lines_indx;
-
-    return 1;
-}
-
-
-
-
 
 
 void PrintLines (Line objects[], int obj_amount)

@@ -137,15 +137,12 @@ void DumpTable (HashTable* self, int dump_size)
 
     for (int i = 0; i < dump_size; i++)
     {
-        printf ("Key %d (%d):\n\t", i, self->array[i].peers);
         HashTableNode* cur_node = &(self->array[i]);
-        
         if (cur_node->content == nullptr)
-        {
-            printf ("xxx\n");
             continue;
-        }
 
+        printf ("Key %d (%d):\n\t", i, self->array[i].peers);
+        
         while (cur_node->next != nullptr)
         {
             printf ("%s->", cur_node->content);
