@@ -3,21 +3,26 @@
 
 void HashTableCtor (HashTable* self, size_t size, HASH_FUNC_CODES hash_code)
 {
-    printf ("Building Hash table");
+    LOG ("Building Hash table\n");
 
     assert (size > 0 && self != nullptr);
 
     self->size = size;
-    self->array = (HashTableNode**) calloc (size, sizeof (HashTable));
+    self->array = (HashTableNode*) calloc (size, sizeof (HashTableNode));
     self->hash_code = hash_code;
+
+    LOG ("Setting array\n");
 
     for (int i = 0; i < self->size; i++)
     {
-        self->array[i]->content = nullptr;
-        self->array[i]->length  = 0;
-        self->array[i]->next    = nullptr;
-        self->array[i]->peers = 0;
+        self->array[i].content = nullptr;
+        self->array[i].length  = 0;
+        self->array[i].next    = nullptr;
+        self->array[i].peers = 0;
     }
+
+    LOG ("Setting function ptr\n");
+
 
     switch (hash_code)
     {
@@ -29,7 +34,7 @@ void HashTableCtor (HashTable* self, size_t size, HASH_FUNC_CODES hash_code)
         break;
     }
 
-    printf ("End of build");
+    LOG ("End of build\n");
 
 }
 
@@ -49,27 +54,29 @@ void HashTableDtor (HashTable* self)
 
 int AddMember (HashTable* self, const char* content)
 {
-    printf ("Adding member %s", content);
+    LOG ("Adding member %s\n", content);
 
 
     uint32_t key = self->hash_func(content) % self->size;
 
     if (SearchMember (self, key, content) == NOT_FOUND)
     {
-        if (self->array[key]->peers == 0)
+        LOG ("New member, key %u\n", key);
+
+        if (self->array[key].peers == 0)        // Corner case
         {
-            self->array[key] = CreateNode (content);
+            self->array[key].content = content;
+            self->array[key].peers   = 1;
             return SUCCESS;
         }
         
-        HashTableNode* cur_node = self->array[key];
+        HashTableNode* cur_node = &(self->array[key]);
     
         while (cur_node->next != nullptr)
-        {
-            cur_node = cur_node->next;
-        }
-        cur_node->next = CreateNode (content);
-        self->array[key]->peers += 1;
+            cur_node = cur_node->next;           // Skipping to end of chain
+
+        cur_node->next = CreateNode (content);   // Hanging new nodes
+        self->array[key].peers += 1;
 
         return SUCCESS;
 
@@ -95,21 +102,63 @@ HashTableNode* CreateNode (const char content[])
 
 bool SearchMember (HashTable* self, uint32_t key, const char content[])
 {
-    HashTableNode* cur_node = self->array[key];
+    HashTableNode* cur_node = &(self->array[key]);
 
-    while (cur_node != nullptr)
+    LOG ("\tSearching member %s\n", content);
+
+    while (cur_node != nullptr && cur_node->peers != 0)
     {
         if (strcmp(cur_node->content, content) == 0)
+        {
+            LOG ("=== Found %s, key: %u\n", content, key);
             return SUCCESS_FOUND;
-        
+        }
         cur_node = cur_node->next;
     }
+
+    LOG ("xxx Not found %s, key: %u\n", content, key);
 
     return NOT_FOUND;
 }
 
 
+// ==========================================================
+// Dump of table --------------------------------------------
+// ==========================================================
 
+void DumpTable (HashTable* self, int dump_size)
+{
+    printf ("\n====================================\n");
+    printf ("Hash Table Dump\n");
+    printf ("====================================\n");
+
+    printf ("Hash function code: %d\n", self->hash_code);
+    printf ("Size: %u\n", self->size);
+    printf (">>> Elements\n");
+
+    for (int i = 0; i < dump_size; i++)
+    {
+        printf ("Key %d (%d):\n\t", i, self->array[i].peers);
+        HashTableNode* cur_node = &(self->array[i]);
+        
+        if (cur_node->content == nullptr)
+        {
+            printf ("xxx\n");
+            continue;
+        }
+
+        while (cur_node->next != nullptr)
+        {
+            printf ("%s->", cur_node->content);
+            cur_node = cur_node->next;
+        }
+
+        printf ("%s\n", cur_node->content);
+        
+    }
+    printf ("========== End of Dump =============\n");
+
+}
 
 // ==========================================================
 // All sort of Hashes ---------------------------------------

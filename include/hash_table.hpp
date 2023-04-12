@@ -24,7 +24,7 @@ struct HashTableNode
 
 struct HashTable
 {
-    HashTableNode** array;
+    HashTableNode* array;
     size_t size;
     uint32_t (*hash_func) (const char*);
     enum HASH_FUNC_CODES hash_code;
@@ -41,7 +41,7 @@ enum RETURN_CODES
 };
 
 
-
+#define LOG(...) fprintf(stderr, __VA_ARGS__)
 
 
 const char input_filename[] = "data/input.txt";
@@ -61,5 +61,7 @@ void HashTableDtor (HashTable* self);
 HashTableNode* CreateNode (const char content[]);
 
 int AddMember (HashTable* self, const char* content);
+
+void DumpTable (HashTable* self, int dump_size);
 
 #endif
