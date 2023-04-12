@@ -64,4 +64,21 @@ int AddMember (HashTable* self, const char* content);
 
 void DumpTable (HashTable* self, int dump_size);
 
+uint32_t OneHash (const char* string);
+
+uint32_t FirstLetterHash (const char* string);
+
+uint32_t LengthHash (const char* string);
+
+uint32_t SumHash (const char* string);
+
+uint32_t RorFunc (int num, int shift);
+
+uint32_t RolFunc (int num, int shift);
+
+uint32_t RolHash (const char* str);
+
+uint32_t RorHash (const char* str);
+
+uint32_t MurMurHash (const char* str);
 #endif

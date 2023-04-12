@@ -160,8 +160,119 @@ void DumpTable (HashTable* self, int dump_size)
 // All sort of Hashes ---------------------------------------
 // ==========================================================
 
+uint32_t OneHash (const char* string)
+{
+    return 1;
+}
+
+uint32_t FirstLetterHash (const char* string)
+{
+    return (uint32_t) string[0];
+}
+
 
 uint32_t LengthHash (const char* string)
 {
     return strlen(string);
 }
+
+
+uint32_t SumHash (const char* string)
+{
+    uint32_t hashsum = 0;
+
+    while (*string != '\0')
+    {
+        hashsum += *string;
+        string++;
+    }
+
+    return hashsum;
+}
+
+
+uint32_t RorFunc (int num, int shift)
+{
+    return (num >> shift) | (num << (32 - shift));
+}
+
+uint32_t RolFunc (int num, int shift)
+{
+    return (num << shift) | (num >> (32 - shift));
+}
+
+uint32_t RolHash (const char* str)
+{
+    uint32_t hash  = 0;
+    size_t   index = 0;
+
+    while (*(str + index))
+    {
+        hash = RolFunc(hash, 1) ^ str[index];
+    }
+
+    return hash;
+}
+
+uint32_t RorHash (const char* str)
+{
+    unsigned int hash  = 0;
+    size_t       index = 0;
+
+    while (*(str + index))
+    {
+        hash = RorFunc(hash, 1) ^ str[index];
+    }
+
+    return hash;
+}
+
+
+uint32_t MurMurHash (const char* str)
+{
+    const unsigned int m = 0x5bd1e995;
+    const unsigned int seed = 0;
+    const int r = 24;
+    const int len = strlen(str);
+
+    unsigned int h = seed ^ len;
+
+    const unsigned char * data = (const unsigned char *)key;
+    unsigned int k = 0;
+
+    while (len >= 4)
+    {
+        k  = data[0];
+        k |= data[1] << 8;
+        k |= data[2] << 16;
+        k |= data[3] << 24;
+
+        k *= m;
+        k ^= k >> r;
+        k *= m;
+
+        h *= m;
+        h ^= k;
+
+        data += 4;
+        len -= 4;
+    }
+
+    switch (len)
+    {
+    case 3:
+        h ^= data[2] << 16;
+    case 2:
+        h ^= data[1] << 8;
+    case 1:
+        h ^= data[0];
+        h *= m;
+    };
+
+    h ^= h >> 13;
+    h *= m;
+    h ^= h >> 15;
+
+    return h;
+}
+
