@@ -56,7 +56,6 @@ int AddMember (HashTable* self, const char* content)
 {
     LOG ("Adding member %s\n", content);
 
-
     uint32_t key = self->hash_func(content) % self->size;
 
     if (SearchMember (self, key, content) == NOT_FOUND)
@@ -133,7 +132,7 @@ void DumpTable (HashTable* self, int dump_size)
     printf ("====================================\n");
 
     printf ("Hash function code: %d\n", self->hash_code);
-    printf ("Size: %u\n", self->size);
+    printf ("Size: %lu\n", self->size);
     printf (">>> Elements\n");
 
     for (int i = 0; i < dump_size; i++)

@@ -11,6 +11,9 @@
 #include "file_utils.h"
 #include "stringUtils.h"
 
+
+const int MAX_WORDS = 2000;
+
 //-----------------------------------------------------------------------------
 
 struct Line
@@ -25,9 +28,8 @@ struct Text
 {
     char *buffer;
     int  symbols_amount;
-    int  lines_amount;
+    int  obj_amount;
     Line *objects;
-    char** words;
 };
 
 //-----------------------------------------------------------------------------
@@ -38,13 +40,15 @@ int read_file (FILE* file, Text *MainText);
 
 int separate_lines (Text *MainText);
 
+void SplitOnWords (Text* MainText);
+
 void print_single_line (Line *cur_line);
 
 void PrintLines (Line objects[], int line_amount);
 
 void trim_left (Text *MainText);
 
-void trim_right (Line objects[], int lines_amount);
+void trim_right (Line objects[], int obj_amount);
 
 void write_result_in_file (Text *MainText, FILE* output_file);
 

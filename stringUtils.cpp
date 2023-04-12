@@ -2,42 +2,44 @@
 #include "include/stringUtils.h"
 
 
-// void SepparateOnWords (Text* MainText)
-// {
-//     MainText->words = (char**) calloc (MainText->symbols_amount * 2, sizeof (char));
-
-//     int cur_len = 0;
-//     for (int i = 0; i < MainText->symbols_amount; i++)
-//     {
-//         if (cur_len != 0)
-//         {
-            
-//         }
-        
-//     }
-// }
-
-
 void GetLines (Text* MainText, FILE* input_file)
 {
     read_file (input_file, MainText);
 
-    calloc_objects (MainText);
+    SplitOnWords (MainText);
 
     separate_lines (MainText);
 
-    trim_left (MainText);    
 }
 
 
-void calloc_objects (Text *MainText)
+void SplitOnWords (Text* MainText)
 {
-    assert (MainText->buffer != nullptr);
+    MainText->objects = (Line*) calloc (MainText->symbols_amount * 2, sizeof (char));
 
-    MainText->objects = (Line*) calloc (sizeof(Line), count_lines (MainText->buffer, MainText->symbols_amount));
+    int cur_len = 0;
+    int words_counter = 0;
+    
+    for (int i = 0; i < MainText->symbols_amount; i++)
+    {
+        if (isalpha(MainText->buffer[i]))
+        {
+            cur_len++;
+        }
+        else
+        {
+            if (cur_len == 0) continue;
 
-    return;
+            MainText->objects[words_counter].begin = MainText->buffer + i - cur_len;
+            MainText->buffer[i] = '\0';
+            cur_len = 0;
+            words_counter++; 
+        }
+    }
+
+    MainText->obj_amount = words_counter;
 }
+
 
 
 int separate_lines (Text *MainText)
@@ -70,44 +72,20 @@ int separate_lines (Text *MainText)
         }
     }
 
-    MainText->lines_amount = lines_indx;
+    MainText->obj_amount = lines_indx;
 
     return 1;
 }
 
 
 
-int count_lines (char *buffer, int symbols_read)
+
+
+
+void PrintLines (Line objects[], int obj_amount)
 {
-    char *cur_ptr = buffer;
-    char *end_ptr = cur_ptr + symbols_read;
-
-    int line_counter = 0;
-
-    for (; cur_ptr != end_ptr; cur_ptr++)
-    {
-        if (*cur_ptr == '\n') line_counter++;
-        // printf("%c", *cur_ptr);
-    }
-
-    return line_counter;
-}
-
-
-void write_result_in_file (Text *MainText, FILE* output_file)
-{
-    for (int i = 0; i < MainText->lines_amount; i++)
-    {
-        fputs (MainText->objects[i].begin, output_file);
-        fputc ('\n', output_file);
-    }
-}
-
-
-void PrintLines (Line objects[], int lines_amount)
-{
-    assert (objects != NULL && lines_amount > 0);
-    for (int i = 0; i < lines_amount; i++)
+    assert (objects != NULL && obj_amount > 0);
+    for (int i = 0; i < obj_amount; i++)
     {
         //printf("%.*s", objects[i].length, objects[i].begin);
         //printf ("Line length %d\n", objects[i].length);
@@ -115,27 +93,6 @@ void PrintLines (Line objects[], int lines_amount)
 
     }
 }
-
-
-void trim_left (Text *MainText)
-{
-    // printf ("Lines amount: %d\n", MainText->lines_amount);
-
-    for (int i = 0; i < (MainText->lines_amount); i++)
-    {
-        char* cur_line = MainText->objects[i].begin;
-        while (!isalpha(*cur_line) && *cur_line != ';' )
-        {
-            if (*cur_line == '{' || *cur_line == '}') break;
-
-            cur_line++;
-            printf ("Trimming left\n");
-        }
-        
-        MainText->objects[i].begin = cur_line;
-    }
-}
-
 
 char* GetTextBuffer (FILE* file)
 {
@@ -178,17 +135,6 @@ int read_file (FILE* file, Text *MainText)
     return 1;
 }
 
-
-void HandleTextStruct (Text* MainText, FILE* input_file)
-{
-    read_file (input_file, MainText);
-
-    calloc_objects (MainText);
-
-    separate_lines (MainText);
-
-    trim_left (MainText);    
-}
 
 void TextDestr (Text *self)
 {
