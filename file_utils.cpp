@@ -31,7 +31,7 @@ int read_file (FILE* file, char** buffer)
 
 
 
-FILE* close_file (FILE* file, char* name)
+FILE* close_file (FILE* file, const char* name)
 {
     assert (file != nullptr);
 

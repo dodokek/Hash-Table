@@ -13,7 +13,7 @@ IFLAGS = -I./include/
 SRC_DIR = ./
 OBJ_DIR = ./lib/
 
-SRC   = main.cpp hash_table.cpp list.cpp file_utils.cpp stringUtils.cpp
+SRC   = main.cpp hash_table.cpp file_utils.cpp stringUtils.cpp
 OBJ   = $(patsubst %.cpp, $(OBJ_DIR)%.o, $(SRC)) 
 
 #linking

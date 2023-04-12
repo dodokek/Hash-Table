@@ -7,12 +7,18 @@
 #include <stdint.h>
 #include <assert.h>
 
-void HashMain();
+
+enum HASH_FUNC_CODES
+{
+    LENGTH_HASH,
+    
+};
 
 struct HashTableNode
 {
-    char* content;
+    const char* content;
     size_t length;
+    uint32_t peers;
     HashTableNode* next;
 };
 
@@ -21,16 +27,39 @@ struct HashTable
     HashTableNode** array;
     size_t size;
     uint32_t (*hash_func) (const char*);
+    enum HASH_FUNC_CODES hash_code;
 };
+
+
+enum RETURN_CODES
+{
+    NOT_FOUND = false,
+    SUCCESS_FOUND = true,
+    SUCCESS = 1,
+    ALREADY_EXISTS = 2,
+
+};
+
+
+
 
 
 const char input_filename[] = "data/input.txt";
 
 //----------------------------------------------------
 
-uint32_t LengthHash (char* string);
+void HashMain();
 
-void HashTableCtor (HashTable* HashT, size_t size, void (* hashfunc)(char*));
+uint32_t LengthHash (const char* string);
 
+void HashTableCtor (HashTable* self, size_t size, HASH_FUNC_CODES hash_code);
+
+bool SearchMember (HashTable* self, uint32_t key, const char content[]);
+
+void HashTableDtor (HashTable* self);
+
+HashTableNode* CreateNode (const char content[]);
+
+int AddMember (HashTable* self, const char* content);
 
 #endif

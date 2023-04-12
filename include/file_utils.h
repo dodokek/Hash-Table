@@ -20,6 +20,6 @@ FILE* get_file (const char file_name[], const char* mode);
 
 int read_file (FILE* file, char** buffer);
 
-FILE* close_file (FILE* file, char* name);
+FILE* close_file (FILE* file, const char* name);
 
 #endif
