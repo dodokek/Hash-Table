@@ -16,27 +16,32 @@ void SplitOnWords (Text* MainText)
 
     int cur_len = 0;
     int words_counter = 0;
+    int word_begin = 0;
     
     for (int i = 0; i < MainText->symbols_amount; i++)
     {
         if (isalpha(MainText->buffer[i]))
         {
-            cur_len++;
+            //
         }
         else
         {
-            if (cur_len == 0) continue;
+            if (word_begin == i)
+            {
+                word_begin = i + 1;
+                continue;
+            }
 
-            MainText->objects[words_counter].begin = MainText->buffer + i - cur_len;
+            MainText->objects[words_counter].begin = MainText->buffer + word_begin;
             MainText->buffer[i] = '\0';
-            cur_len = 0;
-            words_counter++; 
+            word_begin = i + 1;
 
-            // printf ("Word: %s\n", MainText->objects[words_counter].begin);
+            printf ("Word: %s\n", MainText->objects[words_counter].begin);
+            words_counter++; 
         }
     }
 
-    MainText->obj_amount = words_counter - 1;
+    MainText->obj_amount = words_counter;
 }
 
 
