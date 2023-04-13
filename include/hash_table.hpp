@@ -7,7 +7,7 @@
 #include <stdint.h>
 #include <assert.h>
 
-#include "stringUtils.h"
+#include "string_utils.h"
 
 enum HASH_FUNC_CODES
 {

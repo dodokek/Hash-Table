@@ -9,7 +9,7 @@
 #include <ctype.h>
 
 #include "file_utils.h"
-#include "stringUtils.h"
+#include "string_utils.h"
 
 
 const int MAX_WORDS = 10000;

@@ -1,5 +1,5 @@
 #include "include/hash_table.hpp"
-#include "include/stringUtils.h"
+#include "include/string_utils.h"
 
 int main()
 {

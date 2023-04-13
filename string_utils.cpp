@@ -1,5 +1,5 @@
 
-#include "include/stringUtils.h"
+#include "include/string_utils.h"
 
 
 void GetLines (Text* MainText, FILE* input_file)

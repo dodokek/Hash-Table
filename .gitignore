@@ -1,0 +1,7 @@
+#Excluding all work libraries
+/.vscode
+/lib
+
+#Excluding trash
+*.exe
+
