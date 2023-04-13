@@ -12,7 +12,7 @@ void GetLines (Text* MainText, FILE* input_file)
 
 void SplitOnWords (Text* MainText)
 {
-    MainText->objects = (Line*) calloc (MainText->symbols_amount * 2, sizeof (char));
+    MainText->objects = (Line*) calloc (MainText->symbols_amount * 4, sizeof (char));
 
     int cur_len = 0;
     int words_counter = 0;

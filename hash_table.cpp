@@ -16,8 +16,8 @@ void HashTableCtor (HashTable* self, size_t size, HASH_FUNC_CODES hash_code)
     for (int i = 0; i < self->size; i++)
     {
         self->array[i].content = nullptr;
-        self->array[i].length  = 0;
         self->array[i].next    = nullptr;
+        self->array[i].length  = 0;
         self->array[i].peers = 0;
     }
 
@@ -28,6 +28,30 @@ void HashTableCtor (HashTable* self, size_t size, HASH_FUNC_CODES hash_code)
     {
     case LENGTH_HASH:
         self->hash_func = LengthHash;
+        break;
+
+    case CONST_HASH:
+        self->hash_func = OneHash;
+        break;
+    
+    case SUM_HASH:
+        self->hash_func = SumHash;
+        break;
+
+    case FIRST_ASCII_HASH:
+        self->hash_func = FirstLetterHash;
+        break;
+    
+    case ROR_HASH:
+        self->hash_func = RorHash;
+        break;
+    
+    case ROL_HASH:
+        self->hash_func = RolHash;
+        break;
+
+    case MURMUR_HASH:
+        self->hash_func = MurMurMurHash;
         break;
     
     default:
@@ -41,6 +65,9 @@ void HashTableCtor (HashTable* self, size_t size, HASH_FUNC_CODES hash_code)
 
 void HashTableDtor (HashTable* self)
 {
+    // Remove memory leaks!!!
+
+
     free(self->array);
     self->array     = nullptr;
     self->hash_func = nullptr;
@@ -54,7 +81,7 @@ void HashTableDtor (HashTable* self)
 
 int AddMember (HashTable* self, const char* content)
 {
-    LOG ("Adding member %s\n", content);
+    LOG ("Adding member <%s>\n", content);
 
     uint32_t key = self->hash_func(content) % self->size;
 
@@ -228,16 +255,16 @@ uint32_t RorHash (const char* str)
 }
 
 
-uint32_t MurMurHash (const char* str)
+uint32_t MurMurMurHash (const char* str)
 {
     const unsigned int m = 0x5bd1e995;
     const unsigned int seed = 0;
     const int r = 24;
-    const int len = strlen(str);
+    int len = strlen(str);
 
     unsigned int h = seed ^ len;
 
-    const unsigned char * data = (const unsigned char *)key;
+    const unsigned char * data = (const unsigned char *) str;
     unsigned int k = 0;
 
     while (len >= 4)

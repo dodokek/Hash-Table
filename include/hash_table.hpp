@@ -11,7 +11,12 @@
 enum HASH_FUNC_CODES
 {
     LENGTH_HASH,
-    
+    CONST_HASH,
+    SUM_HASH,
+    FIRST_ASCII_HASH,
+    ROR_HASH,
+    ROL_HASH,
+    MURMUR_HASH,
 };
 
 struct HashTableNode
@@ -80,5 +85,5 @@ uint32_t RolHash (const char* str);
 
 uint32_t RorHash (const char* str);
 
-uint32_t MurMurHash (const char* str);
+uint32_t MurMurMurHash (const char* str);
 #endif
