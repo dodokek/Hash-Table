@@ -36,7 +36,7 @@ void SplitOnWords (Text* MainText)
             MainText->buffer[i] = '\0';
             word_begin = i + 1;
 
-            printf ("Word: %s\n", MainText->objects[words_counter].begin);
+            // printf ("Word: %s\n", MainText->objects[words_counter].begin);
             words_counter++; 
         }
     }

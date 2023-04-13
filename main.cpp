@@ -5,21 +5,22 @@ int main()
 {
     Text* InputStruct = (Text*) calloc (1, sizeof(Text));
     FILE* input_file = get_file (input_filename, "rb");
-
     GetLines (InputStruct, input_file);
+    close_file (input_file, input_filename);
 
-    LOG ("Read file\n");
-    // PrintLines (InputStruct->objects, InputStruct->obj_amount);
-    
     HashTable Table = {};
-    HashTableCtor (&Table, 200, FIRST_ASCII_HASH);
-    for (int i = 0; i < InputStruct->obj_amount; i++)
+    FILE* csv_file = get_file (csv_filename, "w+");
+
+    for (HASH_FUNC_CODES code; code < FIRST_ASCII_HASH; code = HASH_FUNC_CODES(code + 1))
     {
-        LOG ("Adding member\n");
-        AddMember (&Table, InputStruct->objects[i].begin);
+        HashTableCtor (&Table, TABLE_SIZE, code);
+        
+        LoadData (InputStruct, &Table);
+        
+        DumpTableInCsv (&Table, csv_file);
+        
+        HashTableDtor (&Table);
     }
 
-
-    DumpTable (&Table, 200);
-    close_file (input_file, input_filename);
+    close_file (csv_file, csv_filename);
 }

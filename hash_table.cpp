@@ -3,7 +3,8 @@
 
 void HashTableCtor (HashTable* self, size_t size, HASH_FUNC_CODES hash_code)
 {
-    LOG ("Building Hash table\n");
+    LOG (">>>>>>Building Hash table\n");
+    LOG ("\tCode: %d\n", hash_code);
 
     assert (size > 0 && self != nullptr);
 
@@ -19,6 +20,7 @@ void HashTableCtor (HashTable* self, size_t size, HASH_FUNC_CODES hash_code)
         self->array[i].next    = nullptr;
         self->array[i].length  = 0;
         self->array[i].peers = 0;
+        self->array[i].is_head = true;
     }
 
     LOG ("Setting function ptr\n");
@@ -65,12 +67,33 @@ void HashTableCtor (HashTable* self, size_t size, HASH_FUNC_CODES hash_code)
 
 void HashTableDtor (HashTable* self)
 {
-    // Remove memory leaks!!!
-
+    for (int i = 0; i < self->size; i++)
+    {
+        FreeRecurs (&(self->array[i]));
+    }
 
     free(self->array);
     self->array     = nullptr;
     self->hash_func = nullptr;
+
+    LOG (">Destroying table\n");
+}
+
+
+int FreeRecurs(HashTableNode* cur_node)
+{
+    if (cur_node->is_head) return SUCCESS;
+
+    if (cur_node->next == nullptr)
+    {
+        free(cur_node);
+        return SUCCESS;
+    }
+
+    FreeRecurs (cur_node->next);
+    free (cur_node);
+
+    return SUCCESS;
 }
 
 
@@ -79,15 +102,26 @@ void HashTableDtor (HashTable* self)
 // ==========================================================
 
 
+int LoadData (Text* DataStruct, HashTable* self)
+{
+    for (int i = 0; i < DataStruct->obj_amount; i++)
+    {
+        AddMember (self, DataStruct->objects[i].begin);
+    }
+
+    return SUCCESS;
+}
+
+
 int AddMember (HashTable* self, const char* content)
 {
-    LOG ("Adding member <%s>\n", content);
+    // LOG ("Adding member <%s>\n", content);
 
     uint32_t key = self->hash_func(content) % self->size;
 
     if (SearchMember (self, key, content) == NOT_FOUND)
     {
-        LOG ("New member, key %u\n", key);
+        // LOG ("New member, key %u\n", key);
 
         if (self->array[key].peers == 0)        // Corner case
         {
@@ -121,6 +155,7 @@ HashTableNode* CreateNode (const char content[])
     new_node->length  = strlen (content);
     new_node->peers   = 1;                  // initially, node is the only peer in the cell
     new_node->next    = nullptr;
+    new_node->is_head = false;
 
     return new_node;
 }
@@ -130,19 +165,19 @@ bool SearchMember (HashTable* self, uint32_t key, const char content[])
 {
     HashTableNode* cur_node = &(self->array[key]);
 
-    LOG ("\tSearching member %s\n", content);
+    // LOG ("\tSearching member %s\n", content);
 
     while (cur_node != nullptr && cur_node->peers != 0)
     {
         if (strcmp(cur_node->content, content) == 0)
         {
-            LOG ("=== Found %s, key: %u\n", content, key);
+            // LOG ("=== Found %s, key: %u\n", content, key);
             return SUCCESS_FOUND;
         }
         cur_node = cur_node->next;
     }
 
-    LOG ("xxx Not found %s, key: %u\n", content, key);
+    // LOG ("xxx Not found %s, key: %u\n", content, key);
 
     return NOT_FOUND;
 }
@@ -181,6 +216,20 @@ void DumpTable (HashTable* self, int dump_size)
     }
     printf ("========== End of Dump =============\n");
 
+}
+
+
+void DumpTableInCsv (HashTable* self, FILE* csv_file)
+{
+    fprintf (csv_file, "\n\n");
+
+    for (int i = 0; i < self->size; i++)
+        fprintf (csv_file, "%d,", i);
+
+    fprintf (csv_file, "\n");
+
+    for (int i = 0; i < self->size; i++)
+        fprintf (csv_file, "%d,", self->array[i].peers);
 }
 
 // ==========================================================
