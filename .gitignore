@@ -4,4 +4,4 @@
 
 #Excluding trash
 *.exe
-
+.gitattributes
