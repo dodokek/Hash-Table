@@ -256,7 +256,7 @@ uint32_t SumHash (const char* string)
 {
     uint32_t hashsum = 0;
 
-    while (*string != '\0')
+    while (*string)
     {
         hashsum += *string;
         string++;
