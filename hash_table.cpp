@@ -12,9 +12,9 @@ void HashTableCtor (HashTable* self, size_t size, HASH_FUNC_CODES hash_code)
     self->array = (HashTableNode*) calloc (size, sizeof (HashTableNode));
     self->hash_code = hash_code;
 
-    LOG ("Setting array\n");
+    // LOG ("Setting array\n");
 
-    for (int i = 0; i < self->size; i++)
+    for (size_t i = 0; i < self->size; i++)
     {
         self->array[i].content = nullptr;
         self->array[i].next    = nullptr;
@@ -22,9 +22,6 @@ void HashTableCtor (HashTable* self, size_t size, HASH_FUNC_CODES hash_code)
         self->array[i].peers = 0;
         self->array[i].is_head = true;
     }
-
-    LOG ("Setting function ptr\n");
-
 
     switch (hash_code)
     {
@@ -67,7 +64,7 @@ void HashTableCtor (HashTable* self, size_t size, HASH_FUNC_CODES hash_code)
 
 void HashTableDtor (HashTable* self)
 {
-    for (int i = 0; i < self->size; i++)
+    for (size_t i = 0; i < self->size; i++)
     {
         FreeRecurs (&(self->array[i]));
     }
@@ -76,7 +73,7 @@ void HashTableDtor (HashTable* self)
     self->array     = nullptr;
     self->hash_func = nullptr;
 
-    LOG (">Destroying table\n");
+    LOG ("<<<<<<Destroying table\n");
 }
 
 
@@ -117,7 +114,7 @@ int AddMember (HashTable* self, const char* content)
 {
     // LOG ("Adding member <%s>\n", content);
 
-    uint32_t key = self->hash_func(content) % self->size;
+    uint32_t key = self->hash_func(content) % (uint32_t) self->size;
 
     if (SearchMember (self, key, content) == NOT_FOUND)
     {
@@ -221,22 +218,24 @@ void DumpTable (HashTable* self, int dump_size)
 
 void DumpTableInCsv (HashTable* self, FILE* csv_file)
 {
-    fprintf (csv_file, "\n\n");
 
-    for (int i = 0; i < self->size; i++)
-        fprintf (csv_file, "%d,", i);
+    for (size_t i = 0; i < self->size; i++)
+        fprintf (csv_file, "%lu ", i);
 
     fprintf (csv_file, "\n");
 
-    for (int i = 0; i < self->size; i++)
-        fprintf (csv_file, "%d,", self->array[i].peers);
+    for (size_t i = 0; i < self->size; i++)
+        fprintf (csv_file, "%d ", self->array[i].peers);
+    
+    fprintf (csv_file, "\n-------\n");
+
 }
 
 // ==========================================================
 // All sort of Hashes ---------------------------------------
 // ==========================================================
 
-uint32_t OneHash (const char* string)
+uint32_t OneHash (const char* /* string */)
 {
     return 1;
 }
@@ -249,7 +248,7 @@ uint32_t FirstLetterHash (const char* string)
 
 uint32_t LengthHash (const char* string)
 {
-    return strlen(string);
+    return (uint32_t) strlen(string);
 }
 
 
@@ -267,14 +266,14 @@ uint32_t SumHash (const char* string)
 }
 
 
-uint32_t RorFunc (int num, int shift)
+uint32_t RorFunc (int num, int shift)   // 011000001 ---> 10110000
 {
-    return (num >> shift) | (num << (32 - shift));
+    return (num >> shift) | (num << (sizeof (uint32_t) - shift));
 }
 
-uint32_t RolFunc (int num, int shift)
+uint32_t RolFunc (int num, int shift)   // 10011000 ----> 0011001
 {
-    return (num << shift) | (num >> (32 - shift));
+    return (num << shift) | (num >> (sizeof (uint32_t) - shift));
 }
 
 uint32_t RolHash (const char* str)
@@ -282,9 +281,10 @@ uint32_t RolHash (const char* str)
     uint32_t hash  = 0;
     size_t   index = 0;
 
-    while (*(str + index))
+    while (*str)
     {
         hash = RolFunc(hash, 1) ^ str[index];
+        str++;
     }
 
     return hash;
@@ -295,9 +295,10 @@ uint32_t RorHash (const char* str)
     unsigned int hash  = 0;
     size_t       index = 0;
 
-    while (*(str + index))
+    while (*str)
     {
         hash = RorFunc(hash, 1) ^ str[index];
+        str++;
     }
 
     return hash;
@@ -309,7 +310,7 @@ uint32_t MurMurMurHash (const char* str)
     const unsigned int m = 0x5bd1e995;
     const unsigned int seed = 0;
     const int r = 24;
-    int len = strlen(str);
+    size_t len = strlen(str);
 
     unsigned int h = seed ^ len;
 

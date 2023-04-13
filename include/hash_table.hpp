@@ -11,8 +11,8 @@
 
 enum HASH_FUNC_CODES
 {
-    LENGTH_HASH,
     CONST_HASH,
+    LENGTH_HASH,
     SUM_HASH,
     FIRST_ASCII_HASH,
     ROR_HASH,
@@ -71,8 +71,6 @@ void HashMain();
 int LoadData (Text* DataStruct, HashTable* self);
 
 void DumpTableInCsv (HashTable* self, FILE* csv_file);
-
-uint32_t LengthHash (const char* string);
 
 void HashTableCtor (HashTable* self, size_t size, HASH_FUNC_CODES hash_code);
 

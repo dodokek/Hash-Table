@@ -11,16 +11,18 @@ int main()
     HashTable Table = {};
     FILE* csv_file = get_file (csv_filename, "w+");
 
-    for (HASH_FUNC_CODES code; code < FIRST_ASCII_HASH; code = HASH_FUNC_CODES(code + 1))
+    for (HASH_FUNC_CODES code = LENGTH_HASH; code <= MURMUR_HASH; code = HASH_FUNC_CODES(code + 1))
     {
         HashTableCtor (&Table, TABLE_SIZE, code);
         
         LoadData (InputStruct, &Table);
         
         DumpTableInCsv (&Table, csv_file);
-        
+
         HashTableDtor (&Table);
     }
+
+        // system ("python3 data/graphics_draw/draw_graph.py");
 
     close_file (csv_file, csv_filename);
 }
