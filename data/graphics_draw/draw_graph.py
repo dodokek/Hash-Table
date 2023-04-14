@@ -6,8 +6,18 @@ import matplotlib.pyplot as plt
 f = open("../csv_file.csv")
 
 names = ["Length Hash", "Hashsum", "FirstAscii", "Ror Hash", "Rol Hash", "Murmur hash"]
+clrs = ['black', 'red', 'brown', 'blue', 'cyan', 'green']
 
-for i in range(6):
+
+for i in range(0,6):
+    ax = plt.gca()
+    # ax.set_ylim([0, 150])
+
+    if names[i] == "FirstAscii":
+        ax.set_xlim([0,200])
+    if names[i] == "Length Hash":
+        ax.set_xlim([0,100])
+
 
     index_1 = f.readline().split(" ")
     index_2 = []
@@ -30,16 +40,21 @@ for i in range(6):
         except:
             continue
 
+    # if names[i] == "Length Hash" or names[i] == "FirstAscii":
+    #     f.readline()
+    #     continue
+
     # Man, i love python for its inreadable scripts like this one
+    print (sum(colls_2))
     index      = np.array (index_2)
     collisions = np.array (colls_2)
-
-    plt.bar(index, collisions, align ='center', alpha=0.5)
-    # plt.title("Graph ", i)
+    plt.bar(index, collisions, align ='center', color = clrs[i])
+    plt.xlabel("Index")
+    plt.ylabel("Collisions")
+    f.readline()
 
     plt.savefig(names[i] + ".png")
     plt.clf()
 
-    f.readline()
 
 # Putting info and drawing graph

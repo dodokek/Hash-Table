@@ -305,31 +305,30 @@ uint32_t RorHash (const char* str)
 }
 
 
-uint32_t MurMurMurHash (const char* str)
+uint32_t MurMurMurHash (const char* data)
 {
-    const unsigned int m = 0x5bd1e995;
+    const unsigned int salt = 0x5bd1e995;
     const unsigned int seed = 0;
-    const int r = 24;
-    size_t len = strlen(str);
+    const int offst = 24;
+    size_t len = strlen(data);
 
-    unsigned int h = seed ^ len;
+    unsigned int hash = seed ^ len;
 
-    const unsigned char * data = (const unsigned char *) str;
-    unsigned int k = 0;
+    unsigned int coef1 = 0;
 
     while (len >= 4)
     {
-        k  = data[0];
-        k |= data[1] << 8;
-        k |= data[2] << 16;
-        k |= data[3] << 24;
+        coef1  = data[0];
+        coef1 |= data[1] << 8;
+        coef1 |= data[2] << 16;
+        coef1 |= data[3] << 24;
 
-        k *= m;
-        k ^= k >> r;
-        k *= m;
+        coef1 *= salt;
+        coef1 ^= coef1 >> offst;
+        coef1 *= salt;
 
-        h *= m;
-        h ^= k;
+        hash *= salt;
+        hash ^= coef1;
 
         data += 4;
         len -= 4;
@@ -338,18 +337,18 @@ uint32_t MurMurMurHash (const char* str)
     switch (len)
     {
     case 3:
-        h ^= data[2] << 16;
+        hash ^= data[2] << 16;
     case 2:
-        h ^= data[1] << 8;
+        hash ^= data[1] << 8;
     case 1:
-        h ^= data[0];
-        h *= m;
+        hash ^= data[0];
+        hash *= salt;
     };
 
-    h ^= h >> 13;
-    h *= m;
-    h ^= h >> 15;
+    hash ^= hash >> 13;
+    hash *= salt;
+    hash ^= hash >> 15;
 
-    return h;
+    return hash;
 }
 
