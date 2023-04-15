@@ -116,7 +116,7 @@ int AddMember (HashTable* self, const char* content)
 
     uint32_t key = self->hash_func(content) % (uint32_t) self->size;
 
-    if (SearchMember (self, key, content) == NOT_FOUND)
+    if (SearchMember (self, content) == NOT_FOUND)
     {
         // LOG ("New member, key %u\n", key);
 
@@ -158,11 +158,13 @@ HashTableNode* CreateNode (const char content[])
 }
 
 
-bool SearchMember (HashTable* self, uint32_t key, const char content[])
+bool SearchMember (HashTable* self, const char content[])
 {
+    uint32_t key = self->hash_func(content) % (uint32_t) self->size;
+
     HashTableNode* cur_node = &(self->array[key]);
 
-    LOG ("\tSearching member %s\n", content);
+    // LOG ("\tSearching member %s\n", content);
 
     while (cur_node != nullptr)
     {
@@ -170,13 +172,13 @@ bool SearchMember (HashTable* self, uint32_t key, const char content[])
 
         if (strcmp(cur_node->content, content) == 0)
         {
-            LOG ("=== Found %s, key: %u\n", content, key);
+            // LOG ("=== Found %s, key: %u\n", content, key);
             return SUCCESS_FOUND;
         }
         cur_node = cur_node->next;
     }
 
-    LOG ("xxx Not found %s, key: %u\n", content, key);
+    // LOG ("xxx Not found %s, key: %u\n", content, key);
 
     return NOT_FOUND;
 }

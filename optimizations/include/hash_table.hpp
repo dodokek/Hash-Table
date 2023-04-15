@@ -50,7 +50,7 @@ enum RETURN_CODES
 //========================================================
 
 const int TABLE_SIZE = 1013;
-const char input_filename[] = "data/input2.txt";
+const char input_filename[] = "data/input.txt";
 const char csv_filename[]   = "data/csv_file.csv";
 
 //========================================================
@@ -74,7 +74,7 @@ void DumpTableInCsv (HashTable* self, FILE* csv_file);
 
 void HashTableCtor (HashTable* self, size_t size, HASH_FUNC_CODES hash_code);
 
-bool SearchMember (HashTable* self, uint32_t key, const char content[]);
+bool SearchMember (HashTable* self, const char content[]);
 
 void HashTableDtor (HashTable* self);
 

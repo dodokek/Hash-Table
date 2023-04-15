@@ -1,6 +1,6 @@
 #include "include/hash_table.hpp"
 #include "include/string_utils.h"
-
+#include <chrono>
 
 int main()
 {
@@ -20,16 +20,28 @@ int main()
     LoadData (InputStruct, &Table);
 
     LOG ("Size: %d\n", InputStruct->obj_amount);
-    for (int i = 1 ; i < 3; i++)
+    
+    std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
+
+    for (int useless_iter = 0; useless_iter < 100; useless_iter++)
     {
-        LOG ("Search %d\n", i);
+        for (int i = 1 ; i < InputStruct->obj_amount; i++)
+        {
 
-        uint32_t key = Table.hash_func (InputStruct->objects[i].begin);
+            // uint32_t key = Table.hash_func (InputStruct->objects[i].begin);
 
-        SearchMember (&Table, key, InputStruct->objects[i].begin);
-        LOG ("Search\n");
+            // AddMember (&Table, InputStruct->objects[i].begin);
+            
+            SearchMember (&Table, InputStruct->objects[i].begin);
 
+            // LOG ("Search\n");
+
+        }
     }
+
+    std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
+
+    printf ("Elapsed time(ms): %u\n", std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count());
 
     HashTableDtor (&Table);
 }
