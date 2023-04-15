@@ -1,5 +1,7 @@
 #include "include/hash_table.hpp"
 
+extern "C" inline unsigned int MurMurAsm (const char* key, int length);
+
 void HashTableCtor (HashTable* self, size_t size, HASH_FUNC_CODES hash_code)
 {
     LOG (">>>>>>Building Hash table\n");
@@ -24,32 +26,12 @@ void HashTableCtor (HashTable* self, size_t size, HASH_FUNC_CODES hash_code)
 
     switch (hash_code)
     {
-    case LENGTH_HASH:
-        self->hash_func = LengthHash;
-        break;
-
-    case CONST_HASH:
-        self->hash_func = OneHash;
-        break;
-    
-    case SUM_HASH:
-        self->hash_func = SumHash;
-        break;
-
-    case FIRST_ASCII_HASH:
-        self->hash_func = FirstLetterHash;
-        break;
-    
-    case ROR_HASH:
-        self->hash_func = RorHash;
-        break;
-    
-    case ROL_HASH:
-        self->hash_func = RolHash;
-        break;
-
     case MURMUR_HASH:
         self->hash_func = MurMurMurHash;
+        break;
+
+    case MURASM_HASH:
+        self->hash_func = MurMurAsm;
         break;
     
     default:
@@ -114,7 +96,7 @@ int AddMember (HashTable* self, const char* content)
     // LOG ("Adding member <%s>\n", content);
     assert (self != nullptr && content != nullptr);
 
-    uint32_t key = self->hash_func(content) % (uint32_t) self->size;
+    uint32_t key = self->hash_func(content, strlen(content)) % (uint32_t) self->size;
 
     if (SearchMember (self, content) == NOT_FOUND)
     {
@@ -160,7 +142,7 @@ HashTableNode* CreateNode (const char content[])
 
 bool SearchMember (HashTable* self, const char content[])
 {
-    uint32_t key = self->hash_func(content) % (uint32_t) self->size;
+    uint32_t key = self->hash_func(content, strlen(content)) % (uint32_t) self->size;
 
     HashTableNode* cur_node = &(self->array[key]);
 
@@ -239,82 +221,12 @@ void DumpTableInCsv (HashTable* self, FILE* csv_file)
 // All sort of Hashes ---------------------------------------
 // ==========================================================
 
-uint32_t OneHash (const char* /* string */)
-{
-    return 1;
-}
 
-uint32_t FirstLetterHash (const char* string)
-{
-    return (uint32_t) string[0];
-}
-
-
-uint32_t LengthHash (const char* string)
-{
-    return (uint32_t) strlen(string);
-}
-
-
-uint32_t SumHash (const char* string)
-{
-    uint32_t hashsum = 0;
-
-    while (*string)
-    {
-        hashsum += *string;
-        string++;
-    }
-
-    return hashsum;
-}
-
-
-uint32_t RorFunc (int num, int shift)   // 011000001 ---> 10110000
-{
-    return (num >> shift) | (num << (sizeof (uint32_t) - shift));
-}
-
-uint32_t RolFunc (int num, int shift)   // 10011000 ----> 0011001
-{
-    return (num << shift) | (num >> (sizeof (uint32_t) - shift));
-}
-
-uint32_t RolHash (const char* str)
-{
-    uint32_t hash  = 0;
-    size_t   index = 0;
-
-    while (*str)
-    {
-        hash = RolFunc(hash, 1) ^ str[index];
-        str++;
-    }
-
-    return hash;
-}
-
-uint32_t RorHash (const char* str)
-{
-    unsigned int hash  = 0;
-    size_t       index = 0;
-
-    while (*str)
-    {
-        hash = RorFunc(hash, 1) ^ str[index];
-        str++;
-    }
-
-    return hash;
-}
-
-
-uint32_t MurMurMurHash (const char* data)
+uint32_t MurMurMurHash (const char* data, int len)
 {
     const unsigned int salt = 0x5bd1e995;
     const unsigned int seed = 0;
     const int offst = 24;
-    size_t len = strlen(data);
 
     unsigned int hash = seed ^ len;
 

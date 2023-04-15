@@ -12,18 +12,22 @@ IFLAGS = -I./include/
 
 SRC_DIR = ./
 OBJ_DIR = ./lib/
+ASM_DIR = ./asm/
 
 SRC   = main.cpp hash_table.cpp file_utils.cpp string_utils.cpp
 OBJ   = $(patsubst %.cpp, $(OBJ_DIR)%.o, $(SRC)) 
 
 #linking
-all : $(OBJ) 
+all : $(OBJ) murmurasm.o
 	$(CC) $(IFLAGS) $(CFLAGS) $^ -o $(OUTPUT_FILE_NAME)
 
 #main
-$(OBJ_DIR)%.o : $(SRC_DIR)%.cpp
+$(OBJ_DIR)%.o : $(SRC_DIR)%.cpp murmurasm.o
 	mkdir -p $(@D)
 	$(CC) $(IFLAGS) $(CFLAGS) -c $^ -o $@
+
+murmurasm.o : $(ASM_DIR)murmurasm.s 
+	nasm -f elf64 -g $(ASM_DIR)murmurasm.s -o murmurasm.o
 
 clear: 
 	rm -f $(OBJ_DIR)*.o

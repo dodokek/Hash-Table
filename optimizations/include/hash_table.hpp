@@ -18,6 +18,7 @@ enum HASH_FUNC_CODES
     ROR_HASH,
     ROL_HASH,
     MURMUR_HASH,
+    MURASM_HASH,
 };
 
 struct HashTableNode
@@ -33,7 +34,7 @@ struct HashTable
 {
     HashTableNode* array;
     size_t size;
-    uint32_t (*hash_func) (const char*);
+    uint32_t (*hash_func) (const char*, int);
     enum HASH_FUNC_CODES hash_code;
 };
 
@@ -102,5 +103,6 @@ uint32_t RolHash (const char* str);
 
 uint32_t RorHash (const char* str);
 
-uint32_t MurMurMurHash (const char* str);
+uint32_t MurMurMurHash (const char* data, int len);
+
 #endif

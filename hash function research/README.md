@@ -141,11 +141,7 @@ uint32_t RorHash (const char* string)
 ![image](https://user-images.githubusercontent.com/57039216/232112048-4300c910-d112-48df-bc87-acb17a5753be.png)
 
 
-<<<<<<< HEAD:hash function research/README.md
 We didn't get less collisions, but graph looks a bit smoother now. The serach should be statisticly quicker, if we pick a random element.
-=======
-We didn't get fewer collisions, but dispersion became much better. It means the searching would be statistically quicker, if we pick random element.
->>>>>>> 7b052236a3e1b9f15b040e84c40b253b78976de1:README.md
 
 
 ### Rotate-left hash
