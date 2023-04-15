@@ -141,7 +141,7 @@ uint32_t RorHash (const char* string)
 ![image](https://user-images.githubusercontent.com/57039216/232112048-4300c910-d112-48df-bc87-acb17a5753be.png)
 
 
-We didn't get less collisions, but dispersion became much better. It means the searching would be statisticly quicker, if we pick random element.
+We didn't get less collisions, but graph looks a bit smoother now. The serach should be statisticly quicker, if we pick a random element.
 
 
 ### Rotate-left hash
@@ -167,13 +167,13 @@ uint32_t RorHash (const char* string)
 ![image](https://user-images.githubusercontent.com/57039216/232111990-2e79096b-82ac-4215-a861-1b9ce8463661.png)
 
 
-Dispersion became slightly better. If I needed to choose among this functions, this function would be the optimal one. 
+Pretty much the same result. If I had to choose from Rotate Hashes and previous Hash functions, I would definitely picked Rotate Hashes.  
 
 However, we have much more effecient and complicated function...
 
 ### Murmur hash
 
-The realization is quite difficult for understanding, we will go through it later in part with optimizations.
+The realization is pretty complicated, we will go through it later in part with optimizations.
 
 With the help of this algorithm, we can have as much as 27 collisions maximally. It is *3 times better* than Rotate Hash. 
 
