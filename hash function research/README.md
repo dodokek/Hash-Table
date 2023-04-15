@@ -12,7 +12,7 @@ Goals of this project:
 
 In this project used **chain method** to avoid collisions. 
 
-Elements with the same hash are stored in linked list.
+Elements with the same hash are stored in the linked list.
 Here is the picture:
 
 ![image](https://user-images.githubusercontent.com/57039216/231858087-bd148c90-40c6-4f20-bdd8-14fe31f474ab.png)
@@ -63,7 +63,7 @@ uint32_t FirstLetterHash (const char* string)
 
 
 
-This hash function might be used somewhere. However we have 4000 words, wich means a lot of collisions and empty buckets.
+This hash function might be used somewhere. However we have 4000 words, which means a lot of collisions and empty buckets.
 
 
 ### Length Hash
@@ -105,7 +105,7 @@ uint32_t SumHash (const char* string)
 ![image](https://user-images.githubusercontent.com/57039216/232112313-789f9850-72b3-43be-bbca-6d973615aef1.png)
 
 
-You can notice the huge improvement. This is one of the simpliest and effective algorithms. Maximal amount of collisions decreaced 400 times :)
+You can notice the huge improvement. This is one of the simplest and effective algorithms. Maximal amount of collisions decreased 400 times :)
 
 
 ### Rotate-right hash
@@ -141,12 +141,16 @@ uint32_t RorHash (const char* string)
 ![image](https://user-images.githubusercontent.com/57039216/232112048-4300c910-d112-48df-bc87-acb17a5753be.png)
 
 
+<<<<<<< HEAD:hash function research/README.md
 We didn't get less collisions, but graph looks a bit smoother now. The serach should be statisticly quicker, if we pick a random element.
+=======
+We didn't get fewer collisions, but dispersion became much better. It means the searching would be statistically quicker, if we pick random element.
+>>>>>>> 7b052236a3e1b9f15b040e84c40b253b78976de1:README.md
 
 
 ### Rotate-left hash
 
-The same algorith as previous, but bits rotating to the left.
+The same algorithm as previous, but bits rotating to the left.
 
 ~~~C++
 uint32_t RorHash (const char* string)
@@ -198,7 +202,7 @@ Let's look at all functions *on the same* graphic:
 > Blue and Cyan - Rotate hashes
 > Return 1 hash is excluded
 
-Then let's have a **closer look** at our favourites:
+Then let's have a **closer look** at our favorites:
 
 ![image](https://user-images.githubusercontent.com/57039216/232110503-21f4e0cf-92c4-418a-b26c-962ae22ecbb7.png)
 
