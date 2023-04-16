@@ -16,7 +16,9 @@ int main()
     HashTableCtor (&Table, TABLE_SIZE, MURASM_HASH);
     
 
-    printf ("%u\n", Table.hash_func ("jopa", 4));
+    
+    HashTableCtor (&Table, TABLE_SIZE, MURASM_HASH);
+    
     // printf ("Hash:    %lu\n", Table.hash_func("abcd", 4));
     // Table.hash_func = MurMurMurHash;
     // printf ("AsmHash: %lu\n", Table.hash_func("abcd", 4));

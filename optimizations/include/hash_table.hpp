@@ -72,6 +72,8 @@ const char csv_filename[]   = "data/csv_file.csv";
 
 void HashMain();
 
+void asm_strcpy (char* dst, const char* src);
+
 int LoadData (Text* DataStruct, HashTable* self);
 
 void DumpTableInCsv (HashTable* self, FILE* csv_file);
