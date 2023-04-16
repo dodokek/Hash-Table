@@ -204,32 +204,32 @@ bool SearchMemberAVX (HashTable* self, const char content[], size_t len)
 }
 
 
-// void asm_strcpy (char* dst, const char* src)
-// {
-//     asm(".intel_syntax noprefix;"
+inline void asm_strcpy (char* dst, const char* src)
+{
+    asm(".intel_syntax noprefix;"
         
-//         "dec rdi;"
-//         "dec rsi;"
+        "dec rdi;"
+        "dec rsi;"
 
-//         "loop:"
-//             "mov r10b, byte [rsi];"
+        "loop:"
+            "mov r10b, byte [rsi];"
     	    
-//             "cmp r10b, 0;"
-//     	    "je end;"
+            "cmp r10b, 0;"
+    	    "je end;"
 
-//             "mov byte [rdi], r10b;"
+            "mov byte [rdi], r10b;"
     	    
-//             "inc rdi;"
-//     	    "inc rsi;"
-//     	    "jmp loop;"
+            "inc rdi;"
+    	    "inc rsi;"
+    	    "jmp loop;"
 
-//         "end:"
-//         "mov ah, 0;"
-//         "mov byte [rdi], ah;"
+        "end:"
+        "mov ah, 0;"
+        "mov byte [rdi], ah;"
 
-//         ".att_syntax"
-//     );
-// }
+        ".att_syntax"
+    );
+}
 
 
 // ==========================================================

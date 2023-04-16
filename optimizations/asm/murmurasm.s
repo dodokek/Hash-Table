@@ -2,8 +2,6 @@ section .text
 
 global MurMurAsm
 
-; seed = 0
-; salt = 0x5bd1e995;
 
 MurMurAsm:
 	pop r13					; saving return address
