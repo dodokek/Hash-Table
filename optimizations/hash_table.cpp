@@ -177,7 +177,7 @@ bool SearchMemberAVX (HashTable* self, const char content[], size_t len)
 
     alignas(32) char word_buffer[MAX_WORD_LEN] = "";
     
-    strcpy (word_buffer, content);
+    asm_strcpy (word_buffer, content);
     __m256i content_avx = _mm256_load_si256 ((__m256i*) word_buffer);  
 
     int peers = cur_node->peers;
@@ -201,6 +201,34 @@ bool SearchMemberAVX (HashTable* self, const char content[], size_t len)
     // LOG ("xxx Not found %s, key: %u\n", content, key);
 
     return NOT_FOUND;
+}
+
+
+void asm_strcpy (char* dst, const char* src)
+{
+    asm(".intel_syntax noprefix;"
+        
+        "dec rdi;"
+        "dec rsi;"
+
+        "loop:"
+            "mov r10b, byte [rsi];"
+    	    
+            "cmp r10b, 0;"
+    	    "je end;"
+
+            "mov byte [rdi], r10b;"
+    	    
+            "inc rdi;"
+    	    "inc rsi;"
+    	    "jmp loop;"
+
+        "end:"
+        "mov ah, 0;"
+        "mov byte [rdi], ah;"
+
+        ".att_syntax"
+    );
 }
 
 
@@ -305,4 +333,3 @@ uint32_t MurMurMurHash (const char* data, int len)
 
     return hash;
 }
-
