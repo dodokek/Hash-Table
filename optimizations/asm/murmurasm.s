@@ -8,8 +8,6 @@ global MurMurAsm
 MurMurAsm:
 	pop r13					; saving return address
 	push rbp				; saving base pointer 												|
-	
-
 
 	; rdi - string
 	; rsi - len

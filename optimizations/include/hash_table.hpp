@@ -6,6 +6,7 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <assert.h>
+#include <immintrin.h>
 
 #include "string_utils.h"
 
@@ -50,9 +51,11 @@ enum RETURN_CODES
 
 //========================================================
 
+const int MAX_WORD_LEN = 32;
 const int TABLE_SIZE = 1013;
 const char input_filename[] = "data/input.txt";
 const char csv_filename[]   = "data/csv_file.csv";
+
 
 //========================================================
 
@@ -75,7 +78,9 @@ void DumpTableInCsv (HashTable* self, FILE* csv_file);
 
 void HashTableCtor (HashTable* self, size_t size, HASH_FUNC_CODES hash_code);
 
-bool SearchMember (HashTable* self, const char content[]);
+bool SearchMember (HashTable* self, const char content[], size_t len);
+
+bool SearchMemberAVX (HashTable* self, const char content[], size_t len);
 
 void HashTableDtor (HashTable* self);
 

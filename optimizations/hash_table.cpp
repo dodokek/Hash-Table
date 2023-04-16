@@ -98,7 +98,12 @@ int AddMember (HashTable* self, const char* content)
 
     uint32_t key = self->hash_func(content, strlen(content)) % (uint32_t) self->size;
 
-    if (SearchMember (self, content) == NOT_FOUND)
+    alignas(32) char word_buffer[MAX_WORD_LEN] = "";
+    strcpy (word_buffer, content);
+    __m256i content_avx = _mm256_load_si256 ((__m256i*) word_buffer);  
+
+
+    if (SearchMemberAVX (self, content, strlen (content)) == NOT_FOUND)
     {
         // LOG ("New member, key %u\n", key);
 
@@ -140,9 +145,9 @@ HashTableNode* CreateNode (const char content[])
 }
 
 
-bool SearchMember (HashTable* self, const char content[])
+bool SearchMember (HashTable* self, const char content[], size_t len)
 {
-    uint32_t key = self->hash_func(content, strlen(content)) % (uint32_t) self->size;
+    uint32_t key = self->hash_func(content, len) % (uint32_t) self->size;
 
     HashTableNode* cur_node = &(self->array[key]);
 
@@ -157,6 +162,38 @@ bool SearchMember (HashTable* self, const char content[])
             // LOG ("=== Found %s, key: %u\n", content, key);
             return SUCCESS_FOUND;
         }
+        cur_node = cur_node->next;
+    }
+
+    // LOG ("xxx Not found %s, key: %u\n", content, key);
+
+    return NOT_FOUND;
+}
+
+bool SearchMemberAVX (HashTable* self, const char content[], size_t len)
+{
+    uint32_t key = self->hash_func(content, len) % (uint32_t) self->size;
+    HashTableNode* cur_node = &(self->array[key]);
+
+    alignas(32) char word_buffer[MAX_WORD_LEN] = "";
+    strcpy (word_buffer, content);
+    __m256i content_avx = _mm256_load_si256 ((__m256i*) word_buffer);  
+
+    int peers = cur_node->peers;
+    for (int i = 0; i < peers; i++)
+    {
+        strcpy (word_buffer, cur_node->content);
+        __m256i cur_val_avx = _mm256_load_si256 ((__m256i*) word_buffer);
+        __m256i cmp_mask    = _mm256_cmpeq_epi8 (content_avx, cur_val_avx);
+        uint32_t int_cmp_mask = (uint32_t) _mm256_movemask_epi8(cmp_mask);
+
+        // printf ("Cmp mask: %x\n", int_cmp_mask);
+        if (int_cmp_mask == 0xFFFFFFFF)
+        { 
+            // LOG ("+++ Found %s, key: %u\n", content, key);
+            return SUCCESS_FOUND;
+        }
+
         cur_node = cur_node->next;
     }
 
@@ -180,7 +217,7 @@ void DumpTable (HashTable* self, int dump_size)
     printf ("Size: %lu\n", self->size);
     printf (">>> Elements\n");
 
-    for (int i = 0; i < dump_size; i++)
+    for (int i = 0; i < self->size; i++)
     {
         HashTableNode* cur_node = &(self->array[i]);
         if (cur_node->content == nullptr)
