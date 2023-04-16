@@ -103,7 +103,7 @@ int AddMember (HashTable* self, const char* content)
     __m256i content_avx = _mm256_load_si256 ((__m256i*) word_buffer);  
 
 
-    if (SearchMemberAVX (self, content, strlen (content)) == NOT_FOUND)
+    if (SearchMember (self, content, strlen (content)) == NOT_FOUND)
     {
         // LOG ("New member, key %u\n", key);
 
@@ -151,9 +151,9 @@ bool SearchMember (HashTable* self, const char content[], size_t len)
 
     HashTableNode* cur_node = &(self->array[key]);
 
-    // LOG ("\tSearching member %s\n", content);
+    int peers = cur_node->peers;
 
-    while (cur_node != nullptr)
+    for (int i = 0; i < peers; i++)
     {
         if (cur_node->peers == 0) break;
 
@@ -176,13 +176,14 @@ bool SearchMemberAVX (HashTable* self, const char content[], size_t len)
     HashTableNode* cur_node = &(self->array[key]);
 
     alignas(32) char word_buffer[MAX_WORD_LEN] = "";
+    
     strcpy (word_buffer, content);
     __m256i content_avx = _mm256_load_si256 ((__m256i*) word_buffer);  
 
     int peers = cur_node->peers;
     for (int i = 0; i < peers; i++)
     {
-        strcpy (word_buffer, cur_node->content);
+        // strcpy (word_buffer, cur_node->content);
         __m256i cur_val_avx = _mm256_load_si256 ((__m256i*) word_buffer);
         __m256i cmp_mask    = _mm256_cmpeq_epi8 (content_avx, cur_val_avx);
         uint32_t int_cmp_mask = (uint32_t) _mm256_movemask_epi8(cmp_mask);

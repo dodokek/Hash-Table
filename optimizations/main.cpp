@@ -27,7 +27,7 @@ int main()
     
     std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
 
-    // for (int useless_iter = 0; useless_iter < 100; useless_iter++)
+    for (int useless_iter = 0; useless_iter < 100; useless_iter++)
     {
         for (int i = 1 ; i < InputStruct->obj_amount; i++)
         {
@@ -36,7 +36,7 @@ int main()
 
             // AddMember (&Table, InputStruct->objects[i].begin);
             
-            SearchMember (&Table, InputStruct->objects[i].begin, strlen (InputStruct->objects[i].begin));
+            SearchMemberAVX (&Table, InputStruct->objects[i].begin, strlen (InputStruct->objects[i].begin));
 
             // LOG ("Search\n");
 
