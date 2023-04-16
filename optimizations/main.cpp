@@ -12,41 +12,41 @@ int main()
     close_file (input_file, input_filename);
 
     HashTable Table = {};
-    FILE* csv_file = get_file (csv_filename, "w+");
-
     
     HashTableCtor (&Table, TABLE_SIZE, MURASM_HASH);
     
+
+    printf ("%u\n", Table.hash_func ("jopa", 4));
     // printf ("Hash:    %lu\n", Table.hash_func("abcd", 4));
     // Table.hash_func = MurMurMurHash;
     // printf ("AsmHash: %lu\n", Table.hash_func("abcd", 4));
 
-    LoadData (InputStruct, &Table);
+    // LoadData (InputStruct, &Table);
 
-    LOG ("Size: %d\n", InputStruct->obj_amount);
+    // LOG ("Size: %d\n", InputStruct->obj_amount);
     
-    std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
+    // std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
 
-    for (int useless_iter = 0; useless_iter < 100; useless_iter++)
-    {
-        for (int i = 1 ; i < InputStruct->obj_amount; i++)
-        {
+    // for (int useless_iter = 0; useless_iter < 100; useless_iter++)
+    // {
+    //     for (int i = 1 ; i < InputStruct->obj_amount; i++)
+    //     {
 
-            // uint32_t key = Table.hash_func (InputStruct->objects[i].begin, strlen (InputStruct->objects[i].begin));
-            // printf ("Key: %u, String: %s\n", key, InputStruct->objects[i].begin);
-            // AddMember (&Table, InputStruct->objects[i].begin);
+    //         // uint32_t key = Table.hash_func (InputStruct->objects[i].begin, strlen (InputStruct->objects[i].begin));
+    //         // printf ("Key: %u, String: %s\n", key, InputStruct->objects[i].begin);
+    //         // AddMember (&Table, InputStruct->objects[i].begin);
 
 
-            SearchMemberAVX (&Table, InputStruct->objects[i].begin, InputStruct->objects[i].length);
+    //         SearchMemberAVX (&Table, InputStruct->objects[i].begin, InputStruct->objects[i].length);
 
-            // LOG ("Search\n");
+    //         // LOG ("Search\n");
 
-        }
-    }
+    //     }
+    // }
 
-    std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
+    // std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
 
-    printf ("Elapsed time(ms): %u\n", std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count());
-    // DumpTable (&Table, 100);
+    // printf ("Elapsed time(ms): %u\n", std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count());
+    // // DumpTable (&Table, 100);
     HashTableDtor (&Table);
 }

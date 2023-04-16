@@ -84,26 +84,21 @@ int LoadData (Text* DataStruct, HashTable* self)
 {
     for (int i = 0; i < DataStruct->obj_amount; i++)
     {
-        AddMember (self, DataStruct->objects[i].begin);
+        AddMember (self, DataStruct->objects[i].begin, DataStruct->objects[i].length);
     }
 
     return SUCCESS;
 }
 
 
-int AddMember (HashTable* self, const char* content)
+int AddMember (HashTable* self, const char* content, size_t len)
 {
     // LOG ("Adding member <%s>\n", content);
     assert (self != nullptr && content != nullptr);
 
-    uint32_t key = self->hash_func(content, strlen(content)) % (uint32_t) self->size;
-
-    alignas(32) char word_buffer[MAX_WORD_LEN] = "";
-    strcpy (word_buffer, content);
-    __m256i content_avx = _mm256_load_si256 ((__m256i*) word_buffer);  
-
-
-    if (SearchMember (self, content, strlen (content)) == NOT_FOUND)
+    uint32_t key = self->hash_func(content, len) % (uint32_t) self->size;
+    
+    if (SearchMember (self, content, len) == NOT_FOUND)
     {
         // LOG ("New member, key %u\n", key);
 

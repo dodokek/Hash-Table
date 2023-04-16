@@ -90,7 +90,7 @@ void asm_strcpy (char* dst, const char* src);
 
 HashTableNode* CreateNode (const char content[]);
 
-int AddMember (HashTable* self, const char* content);
+int AddMember (HashTable* self, const char* content, size_t len);
 
 void DumpTable (HashTable* self, int dump_size);
 
