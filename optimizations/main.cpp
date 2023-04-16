@@ -12,9 +12,6 @@ int main()
     close_file (input_file, input_filename);
 
     HashTable Table = {};
-    
-    HashTableCtor (&Table, TABLE_SIZE, MURASM_HASH);
-    
 
     
     HashTableCtor (&Table, TABLE_SIZE, MURASM_HASH);
