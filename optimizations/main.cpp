@@ -15,7 +15,7 @@ int main()
     FILE* csv_file = get_file (csv_filename, "w+");
 
     
-    HashTableCtor (&Table, TABLE_SIZE, MURMUR_HASH);
+    HashTableCtor (&Table, TABLE_SIZE, MURASM_HASH);
     
     // printf ("Hash:    %lu\n", Table.hash_func("abcd", 4));
     // Table.hash_func = MurMurMurHash;
