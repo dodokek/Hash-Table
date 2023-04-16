@@ -15,7 +15,7 @@ int main()
     FILE* csv_file = get_file (csv_filename, "w+");
 
     
-    HashTableCtor (&Table, TABLE_SIZE, MURASM_HASH);
+    HashTableCtor (&Table, TABLE_SIZE, MURMUR_HASH);
     
     // printf ("Hash:    %lu\n", Table.hash_func("abcd", 4));
     // Table.hash_func = MurMurMurHash;
@@ -35,8 +35,10 @@ int main()
             // uint32_t key = Table.hash_func (InputStruct->objects[i].begin, strlen (InputStruct->objects[i].begin));
             // printf ("Key: %u, String: %s\n", key, InputStruct->objects[i].begin);
             // AddMember (&Table, InputStruct->objects[i].begin);
-            
-            SearchMemberAVX (&Table, InputStruct->objects[i].begin, strlen (InputStruct->objects[i].begin));
+
+
+            SearchMemberAVX (&Table, InputStruct->objects[i].begin, InputStruct->objects[i].length);
+
 
             // LOG ("Search\n");
 
