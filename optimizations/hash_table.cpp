@@ -84,21 +84,26 @@ int LoadData (Text* DataStruct, HashTable* self)
 {
     for (int i = 0; i < DataStruct->obj_amount; i++)
     {
-        AddMember (self, DataStruct->objects[i].begin, DataStruct->objects[i].length);
+        AddMember (self, DataStruct->objects[i].begin);
     }
 
     return SUCCESS;
 }
 
 
-int AddMember (HashTable* self, const char* content, size_t len)
+int AddMember (HashTable* self, const char* content)
 {
     // LOG ("Adding member <%s>\n", content);
     assert (self != nullptr && content != nullptr);
 
-    uint32_t key = self->hash_func(content, len) % (uint32_t) self->size;
-    
-    if (SearchMember (self, content, len) == NOT_FOUND)
+    uint32_t key = self->hash_func(content, strlen(content)) % (uint32_t) self->size;
+
+    alignas(32) char word_buffer[MAX_WORD_LEN] = "";
+    strcpy (word_buffer, content);
+    __m256i content_avx = _mm256_load_si256 ((__m256i*) word_buffer);  
+
+
+    if (SearchMember (self, content, strlen (content)) == NOT_FOUND)
     {
         // LOG ("New member, key %u\n", key);
 
@@ -186,45 +191,45 @@ bool SearchMemberAVX (HashTable* self, const char content[], size_t len)
         // printf ("Cmp mask: %x\n", int_cmp_mask);
         if (int_cmp_mask == 0xFFFFFFFF)
         { 
-            LOG ("+++ Found %s, key: %u\n", content, key);
+            // LOG ("+++ Found %s, key: %u\n", content, key);
             return SUCCESS_FOUND;
         }
 
         cur_node = cur_node->next;
     }
 
-    LOG ("xxx Not found %s, key: %u\n", content, key);
+    // LOG ("xxx Not found %s, key: %u\n", content, key);
 
     return NOT_FOUND;
 }
 
 
-void asm_strcpy (char* dst, const char* src)
-{
-    asm(".intel_syntax noprefix;"
+// void asm_strcpy (char* dst, const char* src)
+// {
+//     asm(".intel_syntax noprefix;"
         
-        "dec rdi;"
-        "dec rsi;"
+//         "dec rdi;"
+//         "dec rsi;"
 
-        "loop:"
-            "mov r10b, byte [rsi];"
+//         "loop:"
+//             "mov r10b, byte [rsi];"
     	    
-            "cmp r10b, 0;"
-    	    "je end;"
+//             "cmp r10b, 0;"
+//     	    "je end;"
 
-            "mov byte [rdi], r10b;"
+//             "mov byte [rdi], r10b;"
     	    
-            "inc rdi;"
-    	    "inc rsi;"
-    	    "jmp loop;"
+//             "inc rdi;"
+//     	    "inc rsi;"
+//     	    "jmp loop;"
 
-        "end:"
-        "mov ah, 0;"
-        "mov byte [rdi], ah;"
+//         "end:"
+//         "mov ah, 0;"
+//         "mov byte [rdi], ah;"
 
-        ".att_syntax"
-    );
-}
+//         ".att_syntax"
+//     );
+// }
 
 
 // ==========================================================

@@ -53,7 +53,7 @@ enum RETURN_CODES
 
 const int MAX_WORD_LEN = 32;
 const int TABLE_SIZE = 1013;
-const char input_filename[] = "data/input2.txt";
+const char input_filename[] = "data/input.txt";
 const char csv_filename[]   = "data/csv_file.csv";
 
 
@@ -88,11 +88,9 @@ void HashTableDtor (HashTable* self);
 
 int FreeRecurs (HashTableNode* cur_node);
 
-void asm_strcpy (char* dst, const char* src);
-
 HashTableNode* CreateNode (const char content[]);
 
-int AddMember (HashTable* self, const char* content, size_t len);
+int AddMember (HashTable* self, const char* content);
 
 void DumpTable (HashTable* self, int dump_size);
 
