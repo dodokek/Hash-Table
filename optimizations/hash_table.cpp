@@ -177,7 +177,7 @@ bool SearchMemberAVX (HashTable* self, const char content[], size_t len)
 
     alignas(32) char word_buffer[MAX_WORD_LEN] = "";
     
-    asm_strcpy (word_buffer, content);
+    strcpy (word_buffer, content);
     __m256i content_avx = _mm256_load_si256 ((__m256i*) word_buffer);  
 
     int peers = cur_node->peers;
