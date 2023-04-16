@@ -1,6 +1,6 @@
 #include "include/hash_table.hpp"
 
-extern "C" inline unsigned int MurMurAsm (const char* key, int length);
+extern "C" inline uint32_t MurMurAsm (const char* key, int length);
 
 void HashTableCtor (HashTable* self, size_t size, HASH_FUNC_CODES hash_code)
 {
