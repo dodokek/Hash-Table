@@ -191,16 +191,44 @@ bool SearchMemberAVX (HashTable* self, const char content[], size_t len)
         // printf ("Cmp mask: %x\n", int_cmp_mask);
         if (int_cmp_mask == 0xFFFFFFFF)
         { 
-            // LOG ("+++ Found %s, key: %u\n", content, key);
+            LOG ("+++ Found %s, key: %u\n", content, key);
             return SUCCESS_FOUND;
         }
 
         cur_node = cur_node->next;
     }
 
-    // LOG ("xxx Not found %s, key: %u\n", content, key);
+    LOG ("xxx Not found %s, key: %u\n", content, key);
 
     return NOT_FOUND;
+}
+
+
+void asm_strcpy (char* dst, const char* src)
+{
+    asm(".intel_syntax noprefix;"
+        
+        "dec rdi;"
+        "dec rsi;"
+
+        "loop:"
+            "mov r10b, byte [rsi];"
+    	    
+            "cmp r10b, 0;"
+    	    "je end;"
+
+            "mov byte [rdi], r10b;"
+    	    
+            "inc rdi;"
+    	    "inc rsi;"
+    	    "jmp loop;"
+
+        "end:"
+        "mov ah, 0;"
+        "mov byte [rdi], ah;"
+
+        ".att_syntax"
+    );
 }
 
 

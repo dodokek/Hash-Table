@@ -207,9 +207,16 @@ Then let's have a **closer look** at our favorites:
 > Cyan - Rotate left hash
 > Red  - Hashsum
 
-At this point the supremacy of Murmur hash is obvious.
+At this point the supremacy of Murmur hash is obvious. This is why in the next part I will use it.
 
 ## Part 2. Optimizations
+
+In this part of the work we will **speed up our search function** by analysing *"bottle necks"* of the program.
+
+I will use **valgrind** to get profiling data and **kcachegrind** to visualize it. Also I will implement a stress-test, which searches *each word* in hash table *100 times*.
+
+
+
 
 ## Conclusion
 
