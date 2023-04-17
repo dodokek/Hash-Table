@@ -1,4 +1,4 @@
-# Hash table - hash functions study and  assembly optimizations
+# Hash table. Hash functions study & assembly optimizations
 
 ## Overview
 
@@ -6,7 +6,7 @@ Goals of this project:
 - Inspect different hash functions and choose the best, by **minimizing** the amount of **collisions**.
 - Implement 3 types of **assembly optimizations** to speed up the *searching function*
   
-> I assume that reader is familiar with the concept of hash tables and assembly optimizations.
+> I assume that reader is familiar with the concept of hash tables and processor architecture.
 
 ## Hash table structure
 
@@ -17,7 +17,7 @@ Here is the picture:
 
 ![image](https://user-images.githubusercontent.com/57039216/231858087-bd148c90-40c6-4f20-bdd8-14fe31f474ab.png)
 
-With proper size and hash function, we can search elements by O(1).
+With proper size and hash function, we can search elements for O(1).
 
 You can read more about it here:
 https://www.geeksforgeeks.org/separate-chaining-collision-handling-technique-in-hashing/
@@ -25,11 +25,13 @@ https://www.geeksforgeeks.org/separate-chaining-collision-handling-technique-in-
 
 ## Part 1. Choosing the best hash function
 
-In this part we will inspect 6 hash functions. The main evaluation parameter will be amount of collisions.
+In this part we will *inspect 7 hash functions*. The main evaluation parameter will be *amount of collisions*.
 
 The **more** collisions we have - the **slower** searching and adding new members will get. That's why this part is really important.
 
-Each time I will load ~15 000 words into the Hash Table.
+Each time I will load ~14 000 unique words into the Hash Table. Size of the table is set to 1000.
+
+With *python library matplotlib* I will draw graphs to see how much collisions we get. 
 
 ### Return 1 Hash
 
@@ -63,7 +65,7 @@ uint32_t FirstLetterHash (const char* string)
 
 
 
-This hash function might be used somewhere. However we have 4000 words, which means a lot of collisions and empty buckets.
+This hash function might be used somewhere. However we have 14000 words, which means a lot of collisions and empty buckets.
 
 
 ### Length Hash
@@ -80,7 +82,7 @@ uint32_t LengthHash (const char* string)
 ![image](https://user-images.githubusercontent.com/57039216/232111816-76c26dfa-6f5b-401a-b284-ac565ec42599.png)
 
 
-We have even more collisions. English language has ~5 letters in the word, which leads to 2500 collisions at the top. 
+We have even more collisions. English language has on average 5 letters in the word, which leads to 2500 collisions at the top. 
 
 
 ### Hashsum
@@ -177,8 +179,6 @@ The realization is pretty complicated, we will go through it later in part with 
 
 With the help of this algorithm, we can have as much as 27 collisions maximally. It is *3 times better* than Rotate Hash. 
 
-Dispersion is also the best among all hash functions we studied.
-
 
 ![image](https://user-images.githubusercontent.com/57039216/232111919-70df2e82-0bd3-4330-b8ee-2356f41c8f83.png)
 
@@ -207,7 +207,7 @@ Then let's have a **closer look** at our favorites:
 > Cyan - Rotate left hash
 > Red  - Hashsum
 
-At this point the supremacy of Murmur hash is obvious. This is why in the next part I will use it.
+At this point the supremacy of Murmur hash is obvious. If we had less words, I might have used Hashsum, but Murmur hash is much more fun to optimize.
 
 ## Part 2. Optimizations
 
@@ -217,7 +217,7 @@ I will use **valgrind** to get profiling data and **kcachegrind** to visualize i
 
 Environment info: I tested the program in the same room, with the same temperature. Battery settings weren't changing during the experiment. 
 
-System info: Intel Core i5, 5th gen. Ноутбук Honor MagicBook 16 R5/16/512
+System info: Intel Core i5, 5th gen. Honor MagicBook 16 R5/16/512
 
 ### Ver.0 - no optimizations
 
@@ -290,7 +290,7 @@ bool SearchMemberAVX (HashTable* self, const char content[], size_t len)
     int peers = cur_node->peers;
     for (int i = 0; i < peers; i++)
     {
-        __m256i cur_val_avx = _mm256_load_si256 ((__m256i*) word_buffer);
+        __m256i cur_val_avx = _mm256_load_si256 ((__m256i*) cur_node->content);
         __m256i cmp_mask    = _mm256_cmpeq_epi8 (content_avx, cur_val_avx);
         uint32_t int_cmp_mask = (uint32_t) _mm256_movemask_epi8(cmp_mask);
 
@@ -335,8 +335,8 @@ global MurMurAsm
 
 
 MurMurAsm:
-	pop r13					; saving return address
-	push rbp				; saving base pointer 												|
+	pop r13				
+	push rbp			
 
 	; rdi - string
 	; rsi - len
@@ -367,7 +367,7 @@ MurMurAsm:
 	inc rdi
 
 	mov edx, 5bd1e995h
-	mul edx		; hash *= salt
+	mul edx		        ; hash *= salt
 	xor rax, rcx		; hash ^= coef1
 
 	sub rsi, 4d			; len -=4
@@ -376,41 +376,41 @@ MurMurAsm:
 jge	.loop
 
 	xor rbx, rbx
-	; switch (len)
-	cmp rsi, 3	; case 3
+	                    ; switch (len)
+	cmp rsi, 3	        ; case 3
 	jne skip3
 
-		mov rbx, [rdi + 2]		; hash ^= data[2] << 16
+		mov rbx, [rdi + 2] ; hash ^= data[2] << 16
 		shl rbx, 16
 		xor rax, rbx
 
 	skip3:
-	cmp rsi, 2	; case 2
+	cmp rsi, 2	        ; case 2
 	jne skip2
 
-		mov rbx, [rdi + 1]		; hash ^= data[2] << 8
-		shl rbx, 8
-		xor rax, rbx
+    mov rbx, [rdi + 1]  ; hash ^= data[2] << 8
+    shl rbx, 8
+    xor rax, rbx
 
 	skip2:
-	cmp rsi, 1	; case 1
+	cmp rsi, 1	        ; case 1
 	jne skip1
 
-		mov rbx, [rdi]		; hash ^= data[0];
-		xor rax, rbx
-		mov edx, 5bd1e995h
-		mul edx		; hash *= salt
+    mov rbx, [rdi]		; hash ^= data[0];
+    xor rax, rbx
+    mov edx, 5bd1e995h
+    mul edx		        ; hash *= salt
 
 	skip1:
 
-	mov edx, eax	; hash ^= hash >> 13
+	mov edx, eax	    ; hash ^= hash >> 13
 	shr edx, 13
 	xor eax, edx
 
 	mov edx, 5bd1e995h
 	mul edx				; hash *= salt
 
-	mov edx, eax	; hash ^= hash >> 15
+	mov edx, eax	    ; hash ^= hash >> 15
 	shr edx, 15
 	xor eax, edx
 
@@ -426,7 +426,7 @@ jge	.loop
 
 >Average search time: 1387 $\pm$ 20 ms
 
-| Version     | Abs. speedup      | Relative speedup   | 
+| Version     | Abs. speedup      | Rel. speedup   | 
 | ------      | :---------------: | :------------: | 
 | No Op.      | 1                 | 1              | 
 | AVX Search  | 2.11              | 2.11           |
@@ -441,7 +441,7 @@ More detailed:
 
 ![image](https://user-images.githubusercontent.com/57039216/232338074-ee415db8-65f9-4bbc-be66-f67b44a1960c.png)
 
->0x000...02820 function - Assembly Murmura hash. 
+>0x000...02820 function - Assembly Murmur hash. 
 
 The last *"bottle neck"* we've got is **strcpy function**, which is used in AVX2 implementation of search function. 
 
@@ -450,7 +450,7 @@ The last *"bottle neck"* we've got is **strcpy function**, which is used in AVX2
 Using GNU inline assembler, I am going to rewrite strcpy function. Theoretically, it also might improve performance.
 
 <details>
-<summary>Strcmp inline assembly implementation</summary>
+<summary>Strcpy inline assembly implementation</summary>
 
 ~~~C++
 asm(".intel_syntax noprefix;"
@@ -482,14 +482,14 @@ asm(".intel_syntax noprefix;"
 
 >Average search time: 1316 $\pm$ 10 ms
 
-| Version     | Abs. speedup      | Relative speedup   | 
+| Version     | Abs. speedup      | Rel. speedup   | 
 | ------      | :---------------: | :------------: | 
 | No Op.      | 1                 | 1              | 
 | AVX Search  | 2.11              | 2.11           |
 | AVX + Murmur Hash assembler  | 2.78             | 1.27        | 
 | -//- + Inline assembler  | 2.85             | 1.06       | 
 
-Relative growth in performance is only 6%. Inline assembler has a lot of disadvantages, so it is not worth it to use this optimization. However I let it stay in education purposes only <3.  
+Relative growth in performance is only 6%. Inline assembler has a lot of disadvantages, so it is not worth it to use this optimization. I will keep it in education purposes only <3.  
 
 As long as *Search function*, *Hash function* and *strcpy function* are still on the top of the callgrind list, there is no point in other optimizations. I will stop here.
 
