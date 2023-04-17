@@ -32,9 +32,20 @@ void SplitOnWords (Text* MainText)
                 continue;
             }
 
-            MainText->objects[words_counter].begin = MainText->buffer + word_begin;
+            alignas(32) char tmp_str[32] = {};
+            
             MainText->buffer[i] = '\0';
-            MainText->objects[words_counter].length = strlen(MainText->objects[words_counter].begin);
+            
+            strcpy (tmp_str, MainText->buffer + word_begin);
+            __m256i* tmp = (__m256i*) aligned_alloc (32, sizeof(__m256i));
+            
+            memset (tmp, 0, sizeof (__m256i));
+            *tmp = _mm256_load_si256 ((__m256i*) tmp_str);
+            // printf ("String: %s\n", tmp);
+            
+
+            MainText->objects[words_counter].string = tmp;
+            MainText->objects[words_counter].length = strlen(MainText->buffer + word_begin);
             word_begin = i + 1;
 
             // printf ("Word: %s\n", MainText->objects[words_counter].begin);
@@ -43,19 +54,6 @@ void SplitOnWords (Text* MainText)
     }
 
     MainText->obj_amount = words_counter;
-}
-
-
-void PrintLines (Line objects[], int obj_amount)
-{
-    assert (objects != NULL && obj_amount > 0);
-    for (int i = 0; i < obj_amount; i++)
-    {
-        //printf("%.*s", objects[i].length, objects[i].begin);
-        //printf ("Line length %d\n", objects[i].length);
-        puts (objects[i].begin);
-
-    }
 }
 
 char* GetTextBuffer (FILE* file)

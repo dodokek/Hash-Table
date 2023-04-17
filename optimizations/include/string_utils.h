@@ -7,6 +7,8 @@
 #include <string.h>
 #include <stdio.h>
 #include <ctype.h>
+#include <immintrin.h>
+
 
 #include "file_utils.h"
 #include "string_utils.h"
@@ -18,7 +20,7 @@ const int MAX_WORDS = 10000;
 
 struct Line
 {
-    char* begin;
+    __m256i* string;
     int   length;
 };
 

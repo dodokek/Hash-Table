@@ -24,9 +24,9 @@ enum HASH_FUNC_CODES
     MURASM_HASH,
 };
 
-struct HashTableNode
+struct  HashTableNode
 {
-    const char* content;
+    __m256i* content;
     size_t length;
     uint32_t peers;
     HashTableNode* next;
@@ -37,7 +37,7 @@ struct HashTable
 {
     HashTableNode* array;
     size_t size;
-    uint32_t (*hash_func) (const char*, int);
+    uint32_t (*hash_func) (const void*, int);
     enum HASH_FUNC_CODES hash_code;
 };
 
@@ -56,14 +56,13 @@ enum RETURN_CODES
 const int MAX_WORD_LEN = 32;
 const int TABLE_SIZE = 1013;
 const char input_filename[] = "data/input.txt";
-const char csv_filename[]   = "data/csv_file.csv";
 
 
 //========================================================
 
 #define AVX_SEARCH
 #define MURASM
-#define ASM_STR
+// #define ASM_STR
 
 
 #ifndef NO_LOG
@@ -89,15 +88,15 @@ void HashTableCtor (HashTable* self, size_t size, HASH_FUNC_CODES hash_code);
 
 bool SearchMember (HashTable* self, const char content[], size_t len);
 
-bool SearchMemberAVX (HashTable* self, const char content[], size_t len);
+bool SearchMemberAVX (HashTable* self, __m256i* content, size_t len);
 
 void HashTableDtor (HashTable* self);
 
 int FreeRecurs (HashTableNode* cur_node);
 
-HashTableNode* CreateNode (const char content[]);
+HashTableNode* CreateNode (__m256i* content);
 
-int AddMember (HashTable* self, const char* content);
+int AddMember (HashTable* self, __m256i* content, size_t len);
 
 void DumpTable (HashTable* self, int dump_size);
 
@@ -117,6 +116,6 @@ uint32_t RolHash (const char* str);
 
 uint32_t RorHash (const char* str);
 
-uint32_t MurMurMurHash (const char* data, int len);
+uint32_t MurMurMurHash (const void* data, int len);
 
 #endif

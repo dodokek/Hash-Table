@@ -7,7 +7,6 @@ MurMurAsm:
 	pop r13					; saving return address
 	push rbp				; saving base pointer 	
 	
-	push rax
 	push rbx
 	push rcx
 	push rdx	
@@ -91,7 +90,6 @@ jge	.loop
 	pop rdx
 	pop rcx
 	pop rbx
-	pop rax
 
 	pop rbp
 	push r13
