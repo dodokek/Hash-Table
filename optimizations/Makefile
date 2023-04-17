@@ -24,7 +24,7 @@ all : $(OBJ) murmurasm.o
 #main
 $(OBJ_DIR)%.o : $(SRC_DIR)%.cpp murmurasm.o
 	mkdir -p $(@D)
-	$(CC) $(IFLAGS) $(CFLAGS) -mavx2 -c $^ -o $@
+	$(CC) $(IFLAGS) $(CFLAGS) -O1 -mavx2 -c $^ -o $@
 
 murmurasm.o : $(ASM_DIR)murmurasm.s 
 	nasm -f elf64 -g $(ASM_DIR)murmurasm.s -o murmurasm.o

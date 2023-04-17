@@ -10,17 +10,11 @@ void StressTest(Text* Input, HashTable* self)
     {
         for (int i = 1 ; i < Input->obj_amount; i++)
         {
-
-            // uint32_t key = Table.hash_func (InputStruct->objects[i].begin, strlen (InputStruct->objects[i].begin));
-            // printf ("Key: %u, String: %s\n", key, InputStruct->objects[i].begin);
-            // AddMember (&Table, InputStruct->objects[i].begin);
-
-
-            SearchMemberAVX (self, Input->objects[i].begin, Input->objects[i].length);
-
-
-            // LOG ("Search\n");
-
+            #ifdef AVX_SEARCH
+                SearchMemberAVX (self, Input->objects[i].begin, Input->objects[i].length);
+            #else
+                SearchMember (self, Input->objects[i].begin, Input->objects[i].length);
+            #endif
         }
     }
 
@@ -206,13 +200,17 @@ bool SearchMemberAVX (HashTable* self, const char content[], size_t len)
 
     alignas(32) char word_buffer[MAX_WORD_LEN] = "";
     
-    asm_strcpy (word_buffer, content);
+    #ifdef ASM_STR
+        asm_strncpy (word_buffer, content, len);
+    #else
+        memcpy (word_buffer, content, len);
+    #endif
+
     __m256i content_avx = _mm256_load_si256 ((__m256i*) word_buffer);  
 
     int peers = cur_node->peers;
     for (int i = 0; i < peers; i++)
     {
-        // strcpy (word_buffer, cur_node->content);
         __m256i cur_val_avx = _mm256_load_si256 ((__m256i*) word_buffer);
         __m256i cmp_mask    = _mm256_cmpeq_epi8 (content_avx, cur_val_avx);
         uint32_t int_cmp_mask = (uint32_t) _mm256_movemask_epi8(cmp_mask);
@@ -233,10 +231,13 @@ bool SearchMemberAVX (HashTable* self, const char content[], size_t len)
 }
 
 
-inline void asm_strcpy (char* dst, const char* src)
+void asm_strncpy (char* dst, const char* src, size_t len)
 {
     asm(".intel_syntax noprefix;"
         
+        "push rax;"
+        "push r10;"
+
         "dec rdi;"
         "dec rsi;"
 
@@ -250,15 +251,25 @@ inline void asm_strcpy (char* dst, const char* src)
     	    
             "inc rdi;"
     	    "inc rsi;"
+            "dec rdx;"
+
+            "cmp rdx, 0;"
+            "je end;"
+
     	    "jmp loop;"
 
         "end:"
         "mov ah, 0;"
         "mov byte [rdi], ah;"
 
+        "pop r10;"
+        "pop rax;"
         ".att_syntax"
     );
 }
+
+
+
 
 
 // ==========================================================
@@ -296,21 +307,6 @@ void DumpTable (HashTable* self, int dump_size)
 
 }
 
-
-void DumpTableInCsv (HashTable* self, FILE* csv_file)
-{
-
-    for (size_t i = 0; i < self->size; i++)
-        fprintf (csv_file, "%lu ", i);
-
-    fprintf (csv_file, "\n");
-
-    for (size_t i = 0; i < self->size; i++)
-        fprintf (csv_file, "%d ", self->array[i].peers);
-    
-    fprintf (csv_file, "\n-------\n");
-
-}
 
 // ==========================================================
 // All sort of Hashes ---------------------------------------

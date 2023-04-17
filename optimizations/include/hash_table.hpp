@@ -61,7 +61,10 @@ const char csv_filename[]   = "data/csv_file.csv";
 
 //========================================================
 
-// #define NO_LOG
+#define AVX_SEARCH
+#define MURASM
+#define ASM_STR
+
 
 #ifndef NO_LOG
     #define LOG(...) fprintf(stderr, __VA_ARGS__)
@@ -76,7 +79,7 @@ void HashMain();
 
 void StressTest(Text* Input, HashTable* self);
 
-inline void asm_strcpy (char* dst, const char* src);
+void asm_strncpy (char* dst, const char* src, size_t len);
 
 int LoadData (Text* DataStruct, HashTable* self);
 

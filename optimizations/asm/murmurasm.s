@@ -5,7 +5,12 @@ global MurMurAsm
 
 MurMurAsm:
 	pop r13					; saving return address
-	push rbp				; saving base pointer 												|
+	push rbp				; saving base pointer 	
+	
+	push rax
+	push rbx
+	push rcx
+	push rdx	
 
 	; rdi - string
 	; rsi - len
@@ -82,6 +87,11 @@ jge	.loop
 	mov edx, eax	; hash ^= hash >> 15
 	shr edx, 15
 	xor eax, edx
+
+	pop rdx
+	pop rcx
+	pop rbx
+	pop rax
 
 	pop rbp
 	push r13

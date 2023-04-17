@@ -19,7 +19,7 @@ Here is the picture:
 
 With proper size and hash function, we can search elements for O(1).
 
-You can read more about it here:
+You can read more about it here:</br>
 https://www.geeksforgeeks.org/separate-chaining-collision-handling-technique-in-hashing/
 
 
@@ -29,7 +29,7 @@ In this part we will *inspect 7 hash functions*. The main evaluation parameter w
 
 The **more** collisions we have - the **slower** searching and adding new members will get. That's why this part is really important.
 
-Each time I will load ~14 000 unique words into the Hash Table. Size of the table is set to 1000.
+Each time I will load ~14 000 unique words into the Hash Table. Size of the table is set to 1000. This is done on purpose, to get clearer vision of hash functions' capabilities. 
 
 With *python library matplotlib* I will draw graphs to see how much collisions we get. 
 
@@ -191,21 +191,21 @@ Let's look at all functions *on the same* graphic:
 
 ![image](https://user-images.githubusercontent.com/57039216/232108285-e3d2b7d7-bb6c-4171-842b-99b35a0888b2.png)
 
-> Green - Murmur hash
-> Black - Length hash
-> Red - Hashsum
-> Brown - First ASCII hash
-> Blue and Cyan - Rotate hashes
-> Return 1 hash is excluded
+> Green - Murmur hash.
+> Black - Length hash.
+> Red - Hashsum.
+> Brown - First ASCII hash.
+> Blue and Cyan - Rotate hashes.
+> Return 1 hash is excluded.
 
 Then let's have a **closer look** at our favorites:
 
 ![image](https://user-images.githubusercontent.com/57039216/232110503-21f4e0cf-92c4-418a-b26c-962ae22ecbb7.png)
 
-> Green - Murmur hash
-> Blue - Rotate right hash 
-> Cyan - Rotate left hash
-> Red  - Hashsum
+> Green - Murmur hash.
+> Blue - Rotate right hash. 
+> Cyan - Rotate left hash.
+> Red  - Hashsum.
 
 At this point the supremacy of Murmur hash is obvious. If we had less words, I might have used Hashsum, but Murmur hash is much more fun to optimize.
 
@@ -218,11 +218,13 @@ I will use **valgrind** to get profiling data and **kcachegrind** to visualize i
 Environment info: I tested the program in the same room, with the same temperature. Battery settings weren't changing during the experiment. 
 
 System info: Intel Core i5, 5th gen. Honor MagicBook 16 R5/16/512
+Compilator info: g++ (Ubuntu 11.3.0-1ubuntu1~22.04) 11.3.0
+Compilation flags: <a href="https://github.com/dodokek/Hash-Table/blob/7fa267edd1e0a0ca521355694075c845ac56063a/optimizations/Makefile#L8">click me</a>
 
-### Ver.0 - no optimizations
+### Version 0 - no optimizations
 
 Before start I removed all unneeded functions: 
-- I got rid of all hashes apart from Murmur Hash
+- I removed of all hashes apart from Murmur Hash
 - Removed all sorts of dump
   
 Also I used *\<chrono>* library to measure the elapsed time.
@@ -235,7 +237,7 @@ Let's have a look at a profiler and find the most *heated* parts of our program.
 
 According to profiler, first of all we should optimize *Searching function* itself.
 
-### Ver.1 - AVX optimization of Search func.
+### Version 1 - AVX optimization of Search func.
 
 From **Length hash** we already know, that there are no words, longer than 20 symbols. It means we can fit each of them into *__m256i* format. 
 
@@ -284,7 +286,7 @@ bool SearchMemberAVX (HashTable* self, const char content[], size_t len)
 
     alignas(32) char word_buffer[MAX_WORD_LEN] = "";
     
-    strcpy (word_buffer, content);
+    strncpy (word_buffer, content, len);
     __m256i content_avx = _mm256_load_si256 ((__m256i*) word_buffer);  
 
     int peers = cur_node->peers;
@@ -450,11 +452,14 @@ The last *"bottle neck"* we've got is **strcpy function**, which is used in AVX2
 Using GNU inline assembler, I am going to rewrite strcpy function. Theoretically, it also might improve performance.
 
 <details>
-<summary>Strcpy inline assembly implementation</summary>
+<summary>Strncpy inline assembly implementation</summary>
 
 ~~~C++
 asm(".intel_syntax noprefix;"
         
+        "push rax;"
+        "push r10;"
+
         "dec rdi;"
         "dec rsi;"
 
@@ -468,39 +473,46 @@ asm(".intel_syntax noprefix;"
     	    
             "inc rdi;"
     	    "inc rsi;"
+            "dec rdx;"
+
+            "cmp rdx, 0;"
+            "je end;"
+
     	    "jmp loop;"
 
         "end:"
         "mov ah, 0;"
         "mov byte [rdi], ah;"
 
+        "pop r10;"
+        "pop rax;"
         ".att_syntax"
     );
 ~~~
 </details>
 </br>
 
->Average search time: 1316 $\pm$ 10 ms
+>Average search time: 1562 $\pm$ 18 ms
 
 | Version     | Abs. speedup      | Rel. speedup   | 
 | ------      | :---------------: | :------------: | 
 | No Op.      | 1                 | 1              | 
 | AVX Search  | 2.11              | 2.11           |
 | AVX + Murmur Hash assembler  | 2.78             | 1.27        | 
-| -//- + Inline assembler  | 2.85             | 1.06       | 
+| -//- + Inline assembler  | 2.4             | 0.86       | 
 
-Relative growth in performance is only 6%. Inline assembler has a lot of disadvantages, so it is not worth it to use this optimization. I will keep it in education purposes only <3.  
+My attempt to optimize *Strncpy* failed. Program became much slower, I will have to discard this optimization. In my opinion, it was a dumb idea to compete with standart library functions. They are already optimized very well. 
 
 As long as *Search function*, *Hash function* and *strcpy function* are still on the top of the callgrind list, there is no point in other optimizations. I will stop here.
 
 ## Conclusion
 
-At the end we got  *Search function*'s performance to increase 2.85 times. In my opinion this is quite good result.
+At the end we got  *Search function*'s performance increase 2.85 times. In my opinion this is quite good result.
 
 Let's calculate Ded's coefficient, to confirm my words:
 
 $Coef_{ded}  = \frac{acceleration}{assembly\space lines} \cdot 1000$
 
-$Coef_{ded} = \frac{2.85}{92} \cdot 1000 \approx 31$
+$Coef_{ded} = \frac{2.78}{92} \cdot 1000 \approx 31$
 
 
