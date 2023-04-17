@@ -7,6 +7,8 @@
 #include <stdint.h>
 #include <assert.h>
 #include <immintrin.h>
+#include <chrono>
+
 
 #include "string_utils.h"
 
@@ -71,6 +73,8 @@ const char csv_filename[]   = "data/csv_file.csv";
 //----------------------------------------------------
 
 void HashMain();
+
+void StressTest(Text* Input, HashTable* self);
 
 inline void asm_strcpy (char* dst, const char* src);
 

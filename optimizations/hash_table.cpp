@@ -2,6 +2,35 @@
 
 extern "C" inline uint32_t MurMurAsm (const char* key, int length);
 
+void StressTest(Text* Input, HashTable* self)
+{
+     std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
+
+    for (int useless_iter = 0; useless_iter < 100; useless_iter++)
+    {
+        for (int i = 1 ; i < Input->obj_amount; i++)
+        {
+
+            // uint32_t key = Table.hash_func (InputStruct->objects[i].begin, strlen (InputStruct->objects[i].begin));
+            // printf ("Key: %u, String: %s\n", key, InputStruct->objects[i].begin);
+            // AddMember (&Table, InputStruct->objects[i].begin);
+
+
+            SearchMemberAVX (self, Input->objects[i].begin, Input->objects[i].length);
+
+
+            // LOG ("Search\n");
+
+        }
+    }
+
+    std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
+
+    printf ("Elapsed time(ms): %u\n", std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count());
+    
+}
+
+
 void HashTableCtor (HashTable* self, size_t size, HASH_FUNC_CODES hash_code)
 {
     LOG (">>>>>>Building Hash table\n");

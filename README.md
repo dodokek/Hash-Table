@@ -6,7 +6,7 @@ Goals of this project:
 - Inspect different hash functions and choose the best, by **minimizing** the amount of **collisions**.
 - Implement 3 types of **assembly optimizations** to speed up the *searching function*
   
-> I asume that reader is familiar with the concept of hash tables and assembly optimizations.
+> I assume that reader is familiar with the concept of hash tables and assembly optimizations.
 
 ## Hash table structure
 
@@ -63,7 +63,7 @@ uint32_t FirstLetterHash (const char* string)
 
 
 
-This hash function might be used somewhere. However we have 4000 words, wich means a lot of collisions and empty buckets.
+This hash function might be used somewhere. However we have 4000 words, which means a lot of collisions and empty buckets.
 
 
 ### Length Hash
@@ -105,7 +105,7 @@ uint32_t SumHash (const char* string)
 ![image](https://user-images.githubusercontent.com/57039216/232112313-789f9850-72b3-43be-bbca-6d973615aef1.png)
 
 
-You can notice the huge improvement. This is one of the simpliest and effective algorithms. Maximal amount of collisions decreaced 400 times :)
+You can notice the huge improvement. This is one of the simplest and effective algorithms. Maximal amount of collisions decreased 400 times :)
 
 
 ### Rotate-right hash
@@ -141,12 +141,12 @@ uint32_t RorHash (const char* string)
 ![image](https://user-images.githubusercontent.com/57039216/232112048-4300c910-d112-48df-bc87-acb17a5753be.png)
 
 
-We didn't get less collisions, but graph looks a bit smoother now. The serach should be statisticly quicker, if we pick a random element.
+We didn't get less collisions, but graph looks a bit smoother now. The search should be statistically quicker, if we pick a random element.
 
 
 ### Rotate-left hash
 
-The same algorith as previous, but bits rotating to the left.
+The same algorithm as previous, but bits rotating to the left.
 
 ~~~C++
 uint32_t RorHash (const char* string)
@@ -169,7 +169,7 @@ uint32_t RorHash (const char* string)
 
 Pretty much the same result. If I had to choose from Rotate Hashes and previous Hash functions, I would definitely picked Rotate Hashes.  
 
-However, we have much more effecient and complicated function...
+However, we have much more efficient and complicated function...
 
 ### Murmur hash
 
@@ -198,7 +198,7 @@ Let's look at all functions *on the same* graphic:
 > Blue and Cyan - Rotate hashes
 > Return 1 hash is excluded
 
-Then let's have a **closer look** at our favourites:
+Then let's have a **closer look** at our favorites:
 
 ![image](https://user-images.githubusercontent.com/57039216/232110503-21f4e0cf-92c4-418a-b26c-962ae22ecbb7.png)
 
@@ -215,25 +215,29 @@ In this part of the work we will **speed up our search function** by analysing *
 
 I will use **valgrind** to get profiling data and **kcachegrind** to visualize it. Also I will implement a stress-test, which searches *each word* in hash table *100 times*.
 
+Environment info: I tested the program in the same room, with the same temperature. Battery settings weren't changing during the experiment. 
+
+System info: Intel Core i5, 5th gen. Ноутбук Honor MagicBook 16 R5/16/512
+
 ### Ver.0 - no optimizations
 
 Before start I removed all unneeded functions: 
 - I got rid of all hashes apart from Murmur Hash
 - Removed all sorts of dump
   
-Also I used *chrono* library to measure the elapsed time.
+Also I used *\<chrono>* library to measure the elapsed time.
 
 >Average search time: 3750 $\pm$ 20 ms
 
-Let's have a look at a profiler and understand the most *heated* parts of our program.
+Let's have a look at a profiler and find the most *heated* parts of our program.
 
-![image](https://user-images.githubusercontent.com/57039216/232337632-77003639-0860-4938-bf47-abacbb88f06e.png)
+![image](https://user-images.githubusercontent.com/57039216/232408535-e38a0e44-a9ab-4ae2-84cf-74215aaac25d.png)
 
-According to profiler, first of all we should optimise *Searching function* itslef.
+According to profiler, first of all we should optimize *Searching function* itself.
 
-### Ver.1 - AVX optimisations of Search func.
+### Ver.1 - AVX optimization of Search func.
 
-From **Length hash** we already know, that there are no words, longer than 20 symbols. It means we can fit each of them into XMM register. 
+From **Length hash** we already know, that there are no words, longer than 20 symbols. It means we can fit each of them into *__m256i* format. 
 
 
 <details>
@@ -244,7 +248,7 @@ bool SearchMember (HashTable* self, const char content[], size_t len)
 {
     uint32_t key = self->hash_func(content, len) % (uint32_t) self->size;
 
-    HashTableNode* cur_node = &(self->array[key]);
+    HashTableNode* cur_node = self->array[key];
 
     int peers = cur_node->peers;
 
@@ -276,7 +280,7 @@ With the help of AVX2 instructions we'll be able to compare strings much faster.
 bool SearchMemberAVX (HashTable* self, const char content[], size_t len)
 {
     uint32_t key = self->hash_func(content, len) % (uint32_t) self->size;
-    HashTableNode* cur_node = &(self->array[key]);
+    HashTableNode* cur_node = self->array[key];
 
     alignas(32) char word_buffer[MAX_WORD_LEN] = "";
     
@@ -310,16 +314,16 @@ bool SearchMemberAVX (HashTable* self, const char content[], size_t len)
 | No Op.      | 1                 | 1              | 
 | AVX Search  | 2.11              | 2.11           | 
 
-We can see a huge increace in speed, let's look what profiler says:
+We can see a huge increase in speed, let's look what profiler says:
 
-![image](https://user-images.githubusercontent.com/57039216/232337979-8f7229c0-607e-49b6-9f7b-9fcceb1a9b03.png)
+![image](https://user-images.githubusercontent.com/57039216/232407643-3df80dc2-0de0-4d03-9f81-f369795d559d.png)
 
 The next target is **Hash function**.
 
 ### Ver.2 - Hash function with Assembly
 
 To improve the performance of the Murmur hash, we can rewrite it on Assembly.
-I will implement it in the sepparate file and then link it with our main program.
+I will implement it in the separate file and then link it with our main program.
 
 <details>
 <summary>Murmur hash assembly code</summary>
@@ -431,7 +435,13 @@ jge	.loop
 Performance growth is not as big as in *Version 1*, but still impressive.
 Let's once again look at profiler data:
 
+![image](https://user-images.githubusercontent.com/57039216/232408082-cb567fcf-db5e-4ba2-b4a9-ab0046bd2e64.png)
+
+More detailed:
+
 ![image](https://user-images.githubusercontent.com/57039216/232338074-ee415db8-65f9-4bbc-be66-f67b44a1960c.png)
+
+>0x000...02820 function - Assembly Murmura hash. 
 
 The last *"bottle neck"* we've got is **strcpy function**, which is used in AVX2 implementation of search function. 
 
@@ -485,12 +495,12 @@ As long as *Search function*, *Hash function* and *strcpy function* are still on
 
 ## Conclusion
 
-At the end we got  *Search function*'s performance increace 2.85 times. In my opinion this is quite good result.
+At the end we got  *Search function*'s performance to increase 2.85 times. In my opinion this is quite good result.
 
 Let's calculate Ded's coefficient, to confirm my words:
 
 $Coef_{ded}  = \frac{acceleration}{assembly\space lines} \cdot 1000$
 
-$Coef_{ded} = (2.85)/92 * 1000 \approx 31$
+$Coef_{ded} = \frac{2.85}{92} \cdot 1000 \approx 31$
 
 
