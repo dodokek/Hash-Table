@@ -19,7 +19,7 @@ Here is the picture:
 
 With proper size and hash function, we can search elements for O(1).
 
-You can read more about it here:
+You can read more about it here:</br>
 https://www.geeksforgeeks.org/separate-chaining-collision-handling-technique-in-hashing/
 
 
@@ -29,7 +29,7 @@ In this part we will *inspect 7 hash functions*. The main evaluation parameter w
 
 The **more** collisions we have - the **slower** searching and adding new members will get. That's why this part is really important.
 
-Each time I will load ~14 000 unique words into the Hash Table. Size of the table is set to 1000.
+Each time I will load ~14 000 unique words into the Hash Table. Size of the table is set to 1000. This is done on purpose, to get clearer vision of hash functions' capabilities. 
 
 With *python library matplotlib* I will draw graphs to see how much collisions we get. 
 
@@ -191,21 +191,21 @@ Let's look at all functions *on the same* graphic:
 
 ![image](https://user-images.githubusercontent.com/57039216/232108285-e3d2b7d7-bb6c-4171-842b-99b35a0888b2.png)
 
-> Green - Murmur hash
-> Black - Length hash
-> Red - Hashsum
-> Brown - First ASCII hash
-> Blue and Cyan - Rotate hashes
-> Return 1 hash is excluded
+> Green - Murmur hash.
+> Black - Length hash.
+> Red - Hashsum.
+> Brown - First ASCII hash.
+> Blue and Cyan - Rotate hashes.
+> Return 1 hash is excluded.
 
 Then let's have a **closer look** at our favorites:
 
 ![image](https://user-images.githubusercontent.com/57039216/232110503-21f4e0cf-92c4-418a-b26c-962ae22ecbb7.png)
 
-> Green - Murmur hash
-> Blue - Rotate right hash 
-> Cyan - Rotate left hash
-> Red  - Hashsum
+> Green - Murmur hash.
+> Blue - Rotate right hash. 
+> Cyan - Rotate left hash.
+> Red  - Hashsum.
 
 At this point the supremacy of Murmur hash is obvious. If we had less words, I might have used Hashsum, but Murmur hash is much more fun to optimize.
 
@@ -222,7 +222,7 @@ System info: Intel Core i5, 5th gen. Honor MagicBook 16 R5/16/512
 ### Ver.0 - no optimizations
 
 Before start I removed all unneeded functions: 
-- I got rid of all hashes apart from Murmur Hash
+- I removed of all hashes apart from Murmur Hash
 - Removed all sorts of dump
   
 Also I used *\<chrono>* library to measure the elapsed time.
@@ -495,7 +495,7 @@ As long as *Search function*, *Hash function* and *strcpy function* are still on
 
 ## Conclusion
 
-At the end we got  *Search function*'s performance to increase 2.85 times. In my opinion this is quite good result.
+At the end we got  *Search function*'s performance increase 2.85 times. In my opinion this is quite good result.
 
 Let's calculate Ded's coefficient, to confirm my words:
 
