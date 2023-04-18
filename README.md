@@ -230,12 +230,13 @@ Also I used *\<chrono>* library to measure the elapsed time.
 
 >Average search time: 3142 $\pm$ 20 ms
 
-Let's have a look at a profiler and find the most *heated* parts of our program.
-
-![image](https://user-images.githubusercontent.com/57039216/232726023-bfa94492-3d43-4d19-907c-1b8933de1ee5.png)
-
-
 ### Version 1 - Replacing Murmur hash with its assembly version.
+
+Let's have use a profiler and find the most *heated* parts of our program.
+
+<img src="https://user-images.githubusercontent.com/57039216/232879463-e4540b75-9166-47e7-bfb7-bf1d400e74a0.png" width="500px">
+
+
 According to profiler, Murmur Hash affects the performance the most.
 We can rewrite it on Assembly. I will implement it in the separate file and then link it with our main program.
 
@@ -331,6 +332,7 @@ jge	.loop
 ~~~
 </details>
 I've tried to combine together operations with memory work and bites shuffling for better conveyer work. This gave me 5% relative performance boost.
+</br>
 </br>
 
 >Average search time: 2850 $\pm$ 20 ms
