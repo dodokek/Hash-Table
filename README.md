@@ -215,9 +215,9 @@ In this part of the work we will **speed up our search function** by analysing *
 
 I will use **valgrind** to get profiling data and **kcachegrind** to visualize it. Also I will implement a stress-test, which searches *each word* in hash table *100 times*. 
 
-**System info:** Intel Core i5, 5th gen. Honor MagicBook 16 R5/16/512
-**Compilator info:** g++ (Ubuntu 11.3.0-1ubuntu1~22.04) 11.3.0
-**Optimization flag:** -O2.
+**System info:** Intel Core i5, 5th gen. Honor MagicBook 16 R5/16/512 </br>
+**Compilator info:** g++ (Ubuntu 11.3.0-1ubuntu1~22.04) 11.3.0	</br>
+**Optimization flag:** -O2.	</br>
 >I've chosen -O2 optimization flag, because I will use AVX2 instructions. You can check my<a href="https://github.com/dodokek/Mandelbrot-Fractal"> previous project</a> for full explanation.
 
 ### Version 0 - no optimizations
@@ -243,14 +243,10 @@ We can rewrite it on Assembly. I will implement it in the separate file and then
 <summary>Murmur hash assembly code</summary>
 
 ~~~C++
-section .text
-
-global MurMurAsm
-
-
 MurMurAsm:
-	pop r13				
-	push rbp			
+	push rbp				; saving base pointer 	
+	
+	push rbx
 
 	; rdi - string
 	; rsi - len
@@ -263,25 +259,23 @@ MurMurAsm:
 	
 .loop:
 	mov rcx, [rdi]		; coef1 = data[0]
-	inc rdi
 
-	mov rbx, [rdi]		; coef1 = data[1] << 8
+	mov rbx, [rdi + 1]		; coef1 = data[1] << 8	
+	mov rdx, [rdi + 2]		; coef1 = data[1] << 8
+	mov r11, [rdi + 3]		; coef1 = data[1] << 8
+	
 	shl rbx, 8
-	or rcx, rbx
-	inc rdi
+	shl rdx, 16
+	shl r11, 24
 
-	mov rbx, [rdi]		; coef1 = data[2] << 16
-	shl rbx, 16
 	or rcx, rbx
-	inc rdi
+	or rcx, rdx
+	or rcx, r11
 
-	mov rbx, [rdi]		; coef1 = data[3] << 24
-	shl rbx, 24
-	or rcx, rbx
-	inc rdi
+	add rdi, 4
 
 	mov edx, 5bd1e995h
-	mul edx		        ; hash *= salt
+	mul edx				; hash *= salt
 	xor rax, rcx		; hash ^= coef1
 
 	sub rsi, 4d			; len -=4
@@ -289,53 +283,54 @@ MurMurAsm:
 	cmp rsi, 4
 jge	.loop
 
-	xor rbx, rbx
-	                    ; switch (len)
-	cmp rsi, 3	        ; case 3
+	; switch (len)
+	cmp rsi, 3	; case 3
 	jne skip3
 
-		mov rbx, [rdi + 2] ; hash ^= data[2] << 16
+		mov rbx, [rdi + 2]		; hash ^= data[2] << 16
 		shl rbx, 16
 		xor rax, rbx
 
 	skip3:
-	cmp rsi, 2	        ; case 2
+	cmp rsi, 2	; case 2
 	jne skip2
 
-    mov rbx, [rdi + 1]  ; hash ^= data[2] << 8
-    shl rbx, 8
-    xor rax, rbx
+		mov rbx, [rdi + 1]		; hash ^= data[2] << 8
+		shl rbx, 8
+		xor rax, rbx
 
 	skip2:
-	cmp rsi, 1	        ; case 1
+	cmp rsi, 1	; case 1
 	jne skip1
 
-    mov rbx, [rdi]		; hash ^= data[0];
-    xor rax, rbx
-    mov edx, 5bd1e995h
-    mul edx		        ; hash *= salt
+		mov rbx, [rdi]		; hash ^= data[0];
+		xor rax, rbx
+		mov edx, 5bd1e995h
+		mul edx		; hash *= salt
 
 	skip1:
 
-	mov edx, eax	    ; hash ^= hash >> 13
+	mov edx, eax	; hash ^= hash >> 13
 	shr edx, 13
 	xor eax, edx
 
 	mov edx, 5bd1e995h
 	mul edx				; hash *= salt
 
-	mov edx, eax	    ; hash ^= hash >> 15
+	mov edx, eax	; hash ^= hash >> 15
 	shr edx, 15
 	xor eax, edx
 
+	pop rbx
+
 	pop rbp
-	push r13
 
 	ret
 
+
 ~~~
 </details>
-
+I've tried to combine together operations with memory work and bites shuffling for better conveyer work. This gave me 5% relative performance boost.
 </br>
 
 >Average search time: 2850 $\pm$ 20 ms
