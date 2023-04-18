@@ -10,7 +10,7 @@ Goals of this project:
 
 ## Hash table structure
 
-In this project used **chain method** to avoid collisions. 
+In this project I used **chain method** to avoid collisions. 
 
 Elements with the same hash are stored in linked list.
 Here is the picture:
