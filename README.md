@@ -524,6 +524,6 @@ Let's calculate Ded's coefficient:
 
 $Coef_{ded}  = \frac{acceleration}{assembly\space lines} \cdot 1000$
 
-$Coef_{ded} = \frac{2.78}{92} \cdot 1000 \approx 31$
+$Coef_{ded} = \frac{1.56}{80} \cdot 1000 \approx 20$
 
 
