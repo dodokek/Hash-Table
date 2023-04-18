@@ -223,7 +223,7 @@ I will use **valgrind** to get profiling data and **kcachegrind** to visualize i
 ### Version 0 - no optimizations
 
 Before start I removed all unneeded functions: 
-- I removed of all hashes apart from Murmur Hash
+- I removed all hashes apart from Murmur Hash
 - Removed all sorts of dump
   
 Also I used *\<chrono>* library to measure the elapsed time.
@@ -465,7 +465,7 @@ bool SearchMemberAVX (HashTable* self, const char content[], size_t len)
 </details>
 </br>
 
-To get the most out of it, I will transform array of input words before searching into *_mm256i*. With that, we can ged rid of strncpy function, which slows the program.
+To get the most out of it, I will transform array of *char** input words into *_mm256i*. With that, we can ged rid of strncpy function, which slows the program.
 
 <details>
 <summary>AVX2 optimized Search code with modified input data </summary>
