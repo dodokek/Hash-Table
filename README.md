@@ -213,13 +213,12 @@ At this point the supremacy of Murmur hash is obvious. If we had less words, I m
 
 In this part of the work we will **speed up our search function** by analysing *"bottle necks"* of the program.
 
-I will use **valgrind** to get profiling data and **kcachegrind** to visualize it. Also I will implement a stress-test, which searches *each word* in hash table *100 times*.
+I will use **valgrind** to get profiling data and **kcachegrind** to visualize it. Also I will implement a stress-test, which searches *each word* in hash table *100 times*. 
 
-Environment info: I tested the program in the same room, with the same temperature. Battery settings weren't changing during the experiment. 
-
-System info: Intel Core i5, 5th gen. Honor MagicBook 16 R5/16/512
-Compilator info: g++ (Ubuntu 11.3.0-1ubuntu1~22.04) 11.3.0
-Compilation flags: <a href="https://github.com/dodokek/Hash-Table/blob/7fa267edd1e0a0ca521355694075c845ac56063a/optimizations/Makefile#L8">click me</a>
+**System info:** Intel Core i5, 5th gen. Honor MagicBook 16 R5/16/512
+**Compilator info:** g++ (Ubuntu 11.3.0-1ubuntu1~22.04) 11.3.0
+**Optimization flag:** -O2.
+>I've chosen -O2 optimization flag, because I will use AVX2 instructions. You can check my<a href="https://github.com/dodokek/Mandelbrot-Fractal"> previous project</a> for full explanation.
 
 ### Version 0 - no optimizations
 
@@ -229,103 +228,16 @@ Before start I removed all unneeded functions:
   
 Also I used *\<chrono>* library to measure the elapsed time.
 
->Average search time: 3750 $\pm$ 20 ms
+>Average search time: 3142 $\pm$ 20 ms
 
 Let's have a look at a profiler and find the most *heated* parts of our program.
 
-![image](https://user-images.githubusercontent.com/57039216/232408535-e38a0e44-a9ab-4ae2-84cf-74215aaac25d.png)
-
-According to profiler, first of all we should optimize *Searching function* itself.
-
-### Version 1 - AVX optimization of Search func.
-
-From **Length hash** we already know, that there are no words, longer than 20 symbols. It means we can fit each of them into *__m256i* format. 
+![image](https://user-images.githubusercontent.com/57039216/232726023-bfa94492-3d43-4d19-907c-1b8933de1ee5.png)
 
 
-<details>
-<summary>Unoptimized Search code</summary>
-
-~~~C++
-bool SearchMember (HashTable* self, const char content[], size_t len)
-{
-    uint32_t key = self->hash_func(content, len) % (uint32_t) self->size;
-
-    HashTableNode* cur_node = self->array[key];
-
-    int peers = cur_node->peers;
-
-    for (int i = 0; i < peers; i++)
-    {
-        if (cur_node->peers == 0) break;
-
-        if (strcmp(cur_node->content, content) == 0)
-        {
-            return SUCCESS_FOUND;
-        }
-        cur_node = cur_node->next;
-    }
-
-    return NOT_FOUND;
-}
-~~~
-</details>
-
-</br>
-
-With the help of AVX2 instructions we'll be able to compare strings much faster. Let's *rewrite Searching function* with them.
-
-
-<details>
-<summary>AVX2 optimized Search code</summary>
-
-~~~C++
-bool SearchMemberAVX (HashTable* self, const char content[], size_t len)
-{
-    uint32_t key = self->hash_func(content, len) % (uint32_t) self->size;
-    HashTableNode* cur_node = self->array[key];
-
-    alignas(32) char word_buffer[MAX_WORD_LEN] = "";
-    
-    strncpy (word_buffer, content, len);
-    __m256i content_avx = _mm256_load_si256 ((__m256i*) word_buffer);  
-
-    int peers = cur_node->peers;
-    for (int i = 0; i < peers; i++)
-    {
-        __m256i cur_val_avx = _mm256_load_si256 ((__m256i*) cur_node->content);
-        __m256i cmp_mask    = _mm256_cmpeq_epi8 (content_avx, cur_val_avx);
-        uint32_t int_cmp_mask = (uint32_t) _mm256_movemask_epi8(cmp_mask);
-
-        if (int_cmp_mask == 0xFFFFFFFF)
-            return SUCCESS_FOUND;
-
-        cur_node = cur_node->next;
-    }
-
-    return NOT_FOUND;
-}
-~~~
-</details>
-</br>
-
->Average search time: 1772 $\pm$ 16 ms
-
-
-| Version     | Abs. speedup      | Relative speedup   | 
-| ------      | :---------------: | :------------: | 
-| No Op.      | 1                 | 1              | 
-| AVX Search  | 2.11              | 2.11           | 
-
-We can see a huge increase in speed, let's look what profiler says:
-
-![image](https://user-images.githubusercontent.com/57039216/232407643-3df80dc2-0de0-4d03-9f81-f369795d559d.png)
-
-The next target is **Hash function**.
-
-### Ver.2 - Hash function with Assembly
-
-To improve the performance of the Murmur hash, we can rewrite it on Assembly.
-I will implement it in the separate file and then link it with our main program.
+### Version 1 - Replacing Murmur hash with its assembly version.
+According to profiler, Murmur Hash affects the performance the most.
+We can rewrite it on Assembly. I will implement it in the separate file and then link it with our main program.
 
 <details>
 <summary>Murmur hash assembly code</summary>
@@ -426,90 +338,194 @@ jge	.loop
 
 </br>
 
->Average search time: 1387 $\pm$ 20 ms
+>Average search time: 2850 $\pm$ 20 ms
 
 | Version     | Abs. speedup      | Rel. speedup   | 
 | ------      | :---------------: | :------------: | 
-| No Op.      | 1                 | 1              | 
-| AVX Search  | 2.11              | 2.11           |
-| AVX + Asm. MurmurHash  | 2.78             | 1.27           | 
+| -O2      | 1                 | 1              | 
+| Assembly Hash  | 1.11              | 1.11           |
 
-Performance growth is not as big as in *Version 1*, but still impressive.
-Let's once again look at profiler data:
+### Replacing strcmp with inline assembly
 
-![image](https://user-images.githubusercontent.com/57039216/232408082-cb567fcf-db5e-4ba2-b4a9-ab0046bd2e64.png)
+Let's once again look on profiler data:
 
-More detailed:
+![image](https://user-images.githubusercontent.com/57039216/232726675-bdfd4ac9-d853-4b0e-853f-ddac212d7697.png)
 
-![image](https://user-images.githubusercontent.com/57039216/232338074-ee415db8-65f9-4bbc-be66-f67b44a1960c.png)
-
->0x000...02820 function - Assembly Murmur hash. 
-
-The last *"bottle neck"* we've got is **strcpy function**, which is used in AVX2 implementation of search function. 
-
-### Ver. 3 Inline assembler
-
-Using GNU inline assembler, I am going to rewrite strcpy function. Theoretically, it also might improve performance.
+According to profiler, the next target is strcmp function. I will rewrite it with **inline assembly**.
 
 <details>
 <summary>Strncpy inline assembly implementation</summary>
 
 ~~~C++
 asm(".intel_syntax noprefix;"
-        
-        "push rax;"
-        "push r10;"
-
-        "dec rdi;"
-        "dec rsi;"
-
         "loop:"
-            "mov r10b, byte [rsi];"
-    	    
-            "cmp r10b, 0;"
+            "push r9;"
+            "push r10;"
+
+            "mov r9b, [rsi];"
+            "mov r10b, [rdi];"
+
+    	    "cmp r9b, 0;"
+    	    "je end;"
+    	    "cmp r10b, 0;"
     	    "je end;"
 
-            "mov byte [rdi], r10b;"
-    	    
-            "inc rdi;"
+    	    "cmp r9b, r10b;"
+    	    "jne end;"
+    	    "inc rdi;"
     	    "inc rsi;"
-            "dec rdx;"
-
-            "cmp rdx, 0;"
-            "je end;"
-
     	    "jmp loop;"
-
         "end:"
-        "mov ah, 0;"
-        "mov byte [rdi], ah;"
+    	    "movzx rax, r9b;"
+    	    "movzx rbx, r10b;"
+    	    "sub rax, rbx;"
 
-        "pop r10;"
-        "pop rax;"
-        ".att_syntax"
+            "pop r10;"
+            "pop r9;"
+
+
+        ".att_syntax" 
+        : "=a" (result)
+        : "S" (dst), "D" (src)
+        : "memory"
     );
 ~~~
 </details>
 </br>
 
->Average search time: 1562 $\pm$ 18 ms
+>Average search time: 3174 $\pm$ 30 ms
 
 | Version     | Abs. speedup      | Rel. speedup   | 
 | ------      | :---------------: | :------------: | 
-| No Op.      | 1                 | 1              | 
-| AVX Search  | 2.11              | 2.11           |
-| AVX + Murmur Hash assembler  | 2.78             | 1.27        | 
-| -//- + Inline assembler  | 2.4             | 0.86       | 
+| -O2      | 1                 | 1              | 
+| Assembly Hash  | 1.11              | 1.11           |
+| Assembly strcmp  | 0.89              | 0.95          |
 
-My attempt to optimize *Strncpy* failed. Program became much slower, I will have to discard this optimization. In my opinion, it was a dumb idea to compete with standart library functions. They are already optimized very well. 
+It turns out, that original version of *strcmp* is faster. I won't count this optimization in the final ratings.
 
-As long as *Search function*, *Hash function* and *strcpy function* are still on the top of the callgrind list, there is no point in other optimizations. I will stop here.
+We need to find some other way to speed up the program.
+
+## Using AVX2 instructions in Search function
+
+From **Length hash** we already know, that there are no words, longer than 20 symbols. It means we can fit each of them into *__m256i* format. 
+
+<details>
+<summary>Unoptimized Search code</summary>
+
+~~~C++
+bool SearchMember (HashTable* self, const char content[], size_t len)
+{
+    uint32_t key = self->hash_func(content, len) % (uint32_t) self->size;
+
+    HashTableNode* cur_node = &(self->array[key]);
+
+    int peers = cur_node->peers;
+    for (int i = 0; i < peers; i++)
+    {
+        if (strcmp((char*)cur_node->content, content) == 0)
+            return SUCCESS_FOUND;
+        cur_node = cur_node->next;
+    }
+
+    return NOT_FOUND;
+}
+~~~
+</details>
+
+</br>
+
+With the help of AVX2 instructions we'll be able to compare strings much faster. Let's *rewrite Searching function* with them.
+
+
+<details>
+<summary>AVX2 optimized Search code</summary>
+
+~~~C++
+bool SearchMemberAVX (HashTable* self, const char content[], size_t len)
+{
+    uint32_t key = self->hash_func(content, len) % (uint32_t) self->size;
+    HashTableNode* cur_node = self->array[key];
+
+    alignas(32) char word_buffer[MAX_WORD_LEN] = ""; 
+    strncpy (word_buffer, content, len);
+
+    __m256i content_avx = _mm256_load_si256 ((__m256i*) word_buffer);  
+
+    int peers = cur_node->peers;
+    for (int i = 0; i < peers; i++)
+    {
+        __m256i cur_val_avx = _mm256_load_si256 ((__m256i*) cur_node->content);
+        __m256i cmp_mask    = _mm256_cmpeq_epi8 (content_avx, cur_val_avx);
+        uint32_t int_cmp_mask = (uint32_t) _mm256_movemask_epi8(cmp_mask);
+
+        if (int_cmp_mask == 0xFFFFFFFF)
+            return SUCCESS_FOUND;
+
+        cur_node = cur_node->next;
+    }
+
+    return NOT_FOUND;
+}
+~~~
+</details>
+</br>
+
+To get the most out of it, I will transform array of input words before searching into *_mm256i*. With that, we can ged rid of strncpy function, which slows the program.
+
+<details>
+<summary>AVX2 optimized Search code with modified input data </summary>
+
+~~~C++
+bool SearchMemberAVX (HashTable* self, __m256i* content, size_t len)
+{
+    uint32_t key = self->hash_func(content, len) % (uint32_t) self->size;
+
+    HashTableNode* cur_node = &(self->array[key]);
+
+    int peers = cur_node->peers;
+    for (int i = 0; i < peers; i++)
+    {
+        int cmp_mask = _mm256_testnzc_si256 (*content, *(cur_node->content));
+
+        if (cmp_mask == 0)
+            return SUCCESS_FOUND;
+
+        cur_node = cur_node->next;
+    }
+
+    return NOT_FOUND;
+}
+~~~
+</details>
+</br>
+
+
+
+>Average search time: 2056 $\pm$ 20 ms
+
+
+| Version     | Abs. speedup      | Rel. speedup   | 
+| ------      | :---------------: | :------------: | 
+| -O2      | 1                 | 1              | 
+| Assembly Hash  | 1.11              | 1.11        |
+| AVX Search| 1.56              | 1.35          |
+
+
+![image](https://user-images.githubusercontent.com/57039216/232727215-a838c29f-2d64-4905-8b8d-1d510cb31b8e.png)
+>0x00...1ef0 - Murmur Hash assembly function
+
+The full list of functions in kcachegrind.
+
+![image](https://user-images.githubusercontent.com/57039216/232727382-007cd349-23de-4e75-81e1-bdaaaa108b9d.png)
+
+According to profiler, there are no more *"bottle necks"* where we can get noticeable rise in performance. I will stop here.
 
 ## Conclusion
 
-At the end we got  *Search function*'s performance increase 2.85 times. In my opinion this is quite good result.
+It turns out, that **not every optimization speeds up** the program, **sometimes** it only **slows it down**.
 
-Let's calculate Ded's coefficient, to confirm my words:
+At the end we got  *Search function*'s performance increase 1.56 times.
+Let's calculate Ded's coefficient:
 
 $Coef_{ded}  = \frac{acceleration}{assembly\space lines} \cdot 1000$
 

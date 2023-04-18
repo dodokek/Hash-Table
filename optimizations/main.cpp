@@ -19,15 +19,6 @@ int main()
     #endif
     LoadData (InputStruct, &Table);
 
-    // char bebra[32] = "abccd";
-    // char bebro[32] = "abccd";
-    // __m256i kek1 = _mm256_load_si256 ((__m256i*) bebra);
-    // __m256i kek2 = _mm256_load_si256 ((__m256i*) bebro);
-
-    // printf ("Hash1 : %u, Hash2: %u\n", 
-    //         Table.hash_func(&kek1, 19),
-    //         Table.hash_func(&kek2, 19));
-
     StressTest (InputStruct, &Table);
     
    // DumpTable (&Table, 100);

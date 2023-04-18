@@ -78,7 +78,7 @@ void HashMain();
 
 void StressTest(Text* Input, HashTable* self);
 
-void asm_strncpy (char* dst, const char* src, size_t len);
+int asm_strcmp (char* dst, const char* src);
 
 int LoadData (Text* DataStruct, HashTable* self);
 
@@ -86,7 +86,7 @@ void DumpTableInCsv (HashTable* self, FILE* csv_file);
 
 void HashTableCtor (HashTable* self, size_t size, HASH_FUNC_CODES hash_code);
 
-bool SearchMember (HashTable* self, const char content[], size_t len);
+bool SearchMember (HashTable* self, char* content, size_t len);
 
 bool SearchMemberAVX (HashTable* self, __m256i* content, size_t len);
 

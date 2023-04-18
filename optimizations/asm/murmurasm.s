@@ -4,12 +4,9 @@ global MurMurAsm
 
 
 MurMurAsm:
-	pop r13					; saving return address
 	push rbp				; saving base pointer 	
 	
 	push rbx
-	push rcx
-	push rdx	
 
 	; rdi - string
 	; rsi - len
@@ -22,25 +19,23 @@ MurMurAsm:
 	
 .loop:
 	mov rcx, [rdi]		; coef1 = data[0]
-	inc rdi
 
-	mov rbx, [rdi]		; coef1 = data[1] << 8
+	mov rbx, [rdi + 1]		; coef1 = data[1] << 8	
+	mov rdx, [rdi + 2]		; coef1 = data[1] << 8
+	mov r11, [rdi + 3]		; coef1 = data[1] << 8
+	
 	shl rbx, 8
-	or rcx, rbx
-	inc rdi
+	shl rdx, 16
+	shl r11, 24
 
-	mov rbx, [rdi]		; coef1 = data[2] << 16
-	shl rbx, 16
 	or rcx, rbx
-	inc rdi
+	or rcx, rdx
+	or rcx, r11
 
-	mov rbx, [rdi]		; coef1 = data[3] << 24
-	shl rbx, 24
-	or rcx, rbx
-	inc rdi
+	add rdi, 4
 
 	mov edx, 5bd1e995h
-	mul edx		; hash *= salt
+	mul edx				; hash *= salt
 	xor rax, rcx		; hash ^= coef1
 
 	sub rsi, 4d			; len -=4
@@ -48,7 +43,6 @@ MurMurAsm:
 	cmp rsi, 4
 jge	.loop
 
-	xor rbx, rbx
 	; switch (len)
 	cmp rsi, 3	; case 3
 	jne skip3
@@ -87,11 +81,8 @@ jge	.loop
 	shr edx, 15
 	xor eax, edx
 
-	pop rdx
-	pop rcx
 	pop rbx
 
 	pop rbp
-	push r13
 
 	ret

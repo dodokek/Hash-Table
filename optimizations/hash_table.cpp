@@ -13,7 +13,7 @@ void StressTest(Text* Input, HashTable* self)
             #ifdef AVX_SEARCH
                 SearchMemberAVX (self, Input->objects[i].string, Input->objects[i].length);
             #else
-                SearchMember (self, Input->objects[i].begin, Input->objects[i].length);
+                SearchMember (self, (char*) Input->objects[i].string, Input->objects[i].length);
             #endif
         }
     }
@@ -162,6 +162,32 @@ HashTableNode* CreateNode (__m256i* content)
 }
 
 
+bool SearchMember (HashTable* self, char* content, size_t len)
+{
+    uint32_t key = self->hash_func(content, len) % (uint32_t) self->size;
+
+    HashTableNode* cur_node = &(self->array[key]);
+
+    // LOG ("\tSearching member %s\n", content);
+    
+    int peers = cur_node->peers;
+    for (int i = 0; i < peers; i++)
+    {
+        if (strcmp((char*)cur_node->content, content) == 0)
+        {
+            // LOG ("=== Found %s, key: %u\n", content, key);
+            return SUCCESS_FOUND;
+        }
+        cur_node = cur_node->next;
+    }
+
+    // LOG ("xxx Not found %s, key: %u\n", content, key);
+
+    return NOT_FOUND;
+}
+
+
+
 bool SearchMemberAVX (HashTable* self, __m256i* content, size_t len)
 {
     uint32_t key = self->hash_func(content, len) % (uint32_t) self->size;
@@ -171,60 +197,59 @@ bool SearchMemberAVX (HashTable* self, __m256i* content, size_t len)
     int peers = cur_node->peers;
     for (int i = 0; i < peers; i++)
     {
-        __m256i cmp_mask    = _mm256_cmpeq_epi8 (*content, *(cur_node->content));
-        uint32_t int_cmp_mask = (uint32_t) _mm256_movemask_epi8(cmp_mask);
+        int cmp_mask = _mm256_testnzc_si256 (*content, *(cur_node->content));
 
-        printf ("Cmp mask: %x\n", int_cmp_mask);
-        if (int_cmp_mask == 0xFFFFFFFF)
+        // printf ("Cmp mask: %d\n", cmp_mask);
+        if (cmp_mask == 0)
         { 
-            LOG ("+++ Found %s, key: %u\n", content, key);
+            // LOG ("+++ Found %s, key: %u\n", content, key);
             return SUCCESS_FOUND;
         }
 
         cur_node = cur_node->next;
     }
 
-    LOG ("xxx Not found %s, key: %u\n", content, key);
+    // LOG ("xxx Not found %s, key: %u\n", content, key);
 
     return NOT_FOUND;
 }
 
 
-void asm_strncpy (char* dst, const char* src, size_t len)
+int asm_strcmp (char* dst, const char* src)
 {
+    int result = 0;
     asm(".intel_syntax noprefix;"
-        
-        "push rax;"
-        "push r10;"
-
-        "dec rdi;"
-        "dec rsi;"
-
         "loop:"
-            "mov r10b, byte [rsi];"
-    	    
-            "cmp r10b, 0;"
+            "push r10;"
+            "push r11;"
+
+            "mov r10b, [rsi];"
+            "mov r11b, [rdi];"
+
+    	    "cmp r10b, 0;"
+    	    "je end;"
+    	    "cmp r11b, 0;"
     	    "je end;"
 
-            "mov byte [rdi], r10b;"
-    	    
-            "inc rdi;"
+    	    "cmp r10b, r11b;"
+    	    "jne end;"
+    	    "inc rdi;"
     	    "inc rsi;"
-            "dec rdx;"
-
-            "cmp rdx, 0;"
-            "je end;"
-
     	    "jmp loop;"
-
         "end:"
-        "mov ah, 0;"
-        "mov byte [rdi], ah;"
+    	    "movzx rax, r10b;"
+    	    "movzx rbx, r11b;"
+    	    "sub rax, rbx;"
 
-        "pop r10;"
-        "pop rax;"
-        ".att_syntax"
+            "pop r11;"
+            "pop r10;"
+
+
+        ".att_syntax" 
+        : "=a" (result) : "S" (dst), "D" (src)
+        : "memory"
     );
+    return result;
 }
 
 
