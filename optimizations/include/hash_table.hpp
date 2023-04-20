@@ -60,7 +60,7 @@ const char input_filename[] = "data/input.txt";
 
 //========================================================
 
-#define AVX_SEARCH
+// #define AVX_SEARCH
 #define MURASM
 // #define ASM_STR
 
@@ -78,7 +78,7 @@ void HashMain();
 
 void StressTest(Text* Input, HashTable* self);
 
-int asm_strcmp (char* dst, const char* src);
+inline int asm_strcmp (char* dst, const char* src);
 
 int LoadData (Text* DataStruct, HashTable* self);
 

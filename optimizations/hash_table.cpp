@@ -215,39 +215,30 @@ bool SearchMemberAVX (HashTable* self, __m256i* content, size_t len)
 }
 
 
-int asm_strcmp (char* dst, const char* src)
+inline int asm_strcmp (char* dst, const char* src)
 {
     int result = 0;
     asm(".intel_syntax noprefix;"
-        "loop:"
-            "push r10;"
-            "push r11;"
-
-            "mov r10b, [rsi];"
-            "mov r11b, [rdi];"
-
+        "mov rsi, %1;"
+        "mov rdi, %2;"
+        "Next:"
+            "mov r11b, byte ptr [rsi];"
+            "mov r10b, byte ptr [rdi];"
     	    "cmp r10b, 0;"
-    	    "je end;"
+    	    "je done;"
     	    "cmp r11b, 0;"
-    	    "je end;"
-
-    	    "cmp r10b, r11b;"
-    	    "jne end;"
+    	    "je done;"
+    	    "cmp r11b, r10b;"
+    	    "jne done;"
     	    "inc rdi;"
     	    "inc rsi;"
-    	    "jmp loop;"
-        "end:"
-    	    "movzx rax, r10b;"
-    	    "movzx rbx, r11b;"
+    	    "jmp Next;"
+        "done:"
+            "movzx rax, r10b;"
+            "movzx rbx, r11b;"
     	    "sub rax, rbx;"
-
-            "pop r11;"
-            "pop r10;"
-
-
-        ".att_syntax" 
-        : "=a" (result) : "S" (dst), "D" (src)
-        : "memory"
+        ".att_syntax"
+        : "=r" (result) : "r" (dst), "r" (src) : "rax", "rbx", "rsi", "rdi", "r10", "r11"
     );
     return result;
 }
