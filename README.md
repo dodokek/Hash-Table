@@ -234,7 +234,7 @@ Also I used *\<chrono>* library to measure the elapsed time.
 
 Let's have use a profiler and find the most *heated* parts of our program.
 
-<img src="https://user-images.githubusercontent.com/57039216/232879463-e4540b75-9166-47e7-bfb7-bf1d400e74a0.png" width="500px">
+<img src="https://user-images.githubusercontent.com/57039216/233388862-fc4fa39e-38f3-4aaa-9598-70059f657ed3.png" width="500px">
 
 
 According to profiler, Murmur Hash affects the performance the most.
