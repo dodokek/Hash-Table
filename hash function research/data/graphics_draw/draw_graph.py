@@ -45,9 +45,11 @@ for i in range(0,6):
     #     continue
 
     # Man, i love python for its inreadable scripts like this one
-    print (sum(colls_2))
+    
+    # print (sum(colls_2))
     index      = np.array (index_2)
     collisions = np.array (colls_2)
+    print (names[i], np.var(collisions));
     plt.bar(index, collisions, align ='center', color = clrs[i])
     plt.xlabel("Index")
     plt.ylabel("Collisions")

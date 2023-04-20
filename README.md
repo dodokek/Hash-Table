@@ -47,6 +47,8 @@ uint32_t OneHash (const char* string)
 
 ![image](https://user-images.githubusercontent.com/57039216/232117825-c30a9f24-dcf6-43f6-889e-5c9d8704f512.png)
 
+>Dispersion: 589413
+
 
 The search would be *far from O(1)*. I implemented it for educational purposes only.
 
@@ -62,6 +64,8 @@ uint32_t FirstLetterHash (const char* string)
 ~~~
 
 ![image](https://user-images.githubusercontent.com/57039216/232112161-f3380d6c-76e4-4a8f-8b6b-742ae0972446.png)
+
+>Dispersion: 8954
 
 
 
@@ -80,6 +84,9 @@ uint32_t LengthHash (const char* string)
 ~~~
 
 ![image](https://user-images.githubusercontent.com/57039216/232111816-76c26dfa-6f5b-401a-b284-ac565ec42599.png)
+
+>Dispersion: 28424
+
 
 
 We have even more collisions. English language has on average 5 letters in the word, which leads to 2500 collisions at the top. 
@@ -105,6 +112,8 @@ uint32_t SumHash (const char* string)
 ~~~
 
 ![image](https://user-images.githubusercontent.com/57039216/232112313-789f9850-72b3-43be-bbca-6d973615aef1.png)
+
+>Dispersion: 189
 
 
 You can notice the huge improvement. This is one of the simplest and effective algorithms. Maximal amount of collisions decreased 400 times :)
@@ -142,8 +151,12 @@ uint32_t RorHash (const char* string)
 
 ![image](https://user-images.githubusercontent.com/57039216/232112048-4300c910-d112-48df-bc87-acb17a5753be.png)
 
+>Dispersion: 178
 
-We didn't get less collisions, but graph looks a bit smoother now. The search should be statistically quicker, if we pick a random element.
+
+We didn't get less collisions, but dispersion became slightly better.
+
+The search should be statistically quicker, if we pick a random element.
 
 
 ### Rotate-left hash
@@ -168,8 +181,12 @@ uint32_t RorHash (const char* string)
 
 ![image](https://user-images.githubusercontent.com/57039216/232111990-2e79096b-82ac-4215-a861-1b9ce8463661.png)
 
+>Dispersion: 93
 
-Pretty much the same result. If I had to choose from Rotate Hashes and previous Hash functions, I would definitely picked Rotate Hashes.  
+
+Pretty much the same result with less dispersion.
+
+If I had to choose from Rotate Hashes and previous Hash functions, I would definitely picked Rotate Hashes.  
 
 However, we have much more efficient and complicated function...
 
@@ -182,8 +199,10 @@ With the help of this algorithm, we can have as much as 27 collisions maximally.
 
 ![image](https://user-images.githubusercontent.com/57039216/232111919-70df2e82-0bd3-4330-b8ee-2356f41c8f83.png)
 
+>Dispersion: 15
 
-I will use this *Hash function* for the next part of my project because it has a *great potential for optimizations*.
+
+I will use this *Hash function* for the next part of my project because it has a *great potential for optimizations* and small dispersion.
 
 ### Conclusion
 
@@ -234,7 +253,7 @@ Also I used *\<chrono>* library to measure the elapsed time.
 
 Let me visualize profiler data for you:
 
-<img src="https://user-images.githubusercontent.com/57039216/233388862-fc4fa39e-38f3-4aaa-9598-70059f657ed3.png" width="500px">
+<img src="https://user-images.githubusercontent.com/57039216/233388862-fc4fa39e-38f3-4aaa-9598-70059f657ed3.png" width="700px">
 
 
 According to profiler, Murmur Hash affects the performance the most.
@@ -331,6 +350,7 @@ jge	.loop
 
 ~~~
 </details>
+
 I've tried to combine together operations with memory work and bites shuffling for better conveyer work. This gave me 5% relative performance boost.
 </br>
 </br>
@@ -346,7 +366,8 @@ I've tried to combine together operations with memory work and bites shuffling f
 
 Let's once again look on profiler data:
 
-![image](https://user-images.githubusercontent.com/57039216/232726675-bdfd4ac9-d853-4b0e-853f-ddac212d7697.png)
+<img src="https://user-images.githubusercontent.com/57039216/233393870-7e51ac85-59c9-49b0-a337-e8c1977d7cb4.png
+" width="700px">
 
 According to profiler, the next target is strcmp function. I will rewrite it with **inline assembly**.
 
@@ -542,6 +563,6 @@ Let's calculate Ded's coefficient:
 
 $Coef_{ded}  = \frac{acceleration}{assembly\space lines} \cdot 1000$
 
-$Coef_{ded} = \frac{1.56}{80} \cdot 1000 \approx 20$
+$Coef_{ded} = \frac{2.54}{80} \cdot 1000 \approx 31$
 
 
