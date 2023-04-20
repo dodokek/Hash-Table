@@ -366,8 +366,7 @@ I've tried to combine together operations with memory work and bites shuffling f
 
 Let's once again look on profiler data:
 
-<img src="https://user-images.githubusercontent.com/57039216/233393870-7e51ac85-59c9-49b0-a337-e8c1977d7cb4.png
-" width="700px">
+<img src="https://user-images.githubusercontent.com/57039216/233393870-7e51ac85-59c9-49b0-a337-e8c1977d7cb4.png" width="700px">
 
 According to profiler, the next target is strcmp function. I will rewrite it with **inline assembly**.
 
