@@ -232,7 +232,7 @@ Also I used *\<chrono>* library to measure the elapsed time.
 
 ### Version 1 - Replacing Murmur hash with its assembly version.
 
-Let's have use a profiler and find the most *heated* parts of our program.
+Let me visualize profiler data for you:
 
 <img src="https://user-images.githubusercontent.com/57039216/232879463-e4540b75-9166-47e7-bfb7-bf1d400e74a0.png" width="500px">
 
@@ -530,6 +530,8 @@ Amount of collisions will drop tremendeously and the performance will rise.
 | Assembly Hash  | 1.11              | 1.11        |
 | AVX Search| 1.56              | 1.35          |
 | Size increace | 2.54              | 1.66          |
+
+As soon as we get the most out of our program, I will stop here.
 
 ## Conclusion
 
