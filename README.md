@@ -383,24 +383,23 @@ asm(".intel_syntax noprefix;"
 
         ".att_syntax" 
         : "=a" (result)
-        : "S" (dst), "D" (src)
-        : "memory"
+        : "S" (dst), "D" (src) : "rax", "rbx", "rsi", "rdi", "r9", "r10"
     );
 ~~~
 </details>
 </br>
 
->Average search time: 3174 $\pm$ 30 ms
+>Average search time: 5416 $\pm$ 30 ms
 
 | Version     | Abs. speedup      | Rel. speedup   | 
 | ------      | :---------------: | :------------: | 
 | -O2      | 1                 | 1              | 
 | Assembly Hash  | 1.11              | 1.11           |
-| Assembly strcmp  | 0.89              | 0.95          |
+| Assembly strcmp  | 0.58              | 0.52          |
 
-It turns out, that original version of *strcmp* is faster. I won't count this optimization in the final ratings.
+It turns out, that **original** version of *strcmp* is **much faster**. Unfortunately, this optimisation is useless. I won't count it in the final ratings.
 
-We need to find some other way to speed up the program.
+We need to find another way to speed up the program.
 
 ## Using AVX2 instructions in Search function
 
@@ -515,7 +514,22 @@ The full list of functions in kcachegrind.
 
 ![image](https://user-images.githubusercontent.com/57039216/232727382-007cd349-23de-4e75-81e1-bdaaaa108b9d.png)
 
-According to profiler, there are no more *"bottle necks"* where we can get noticeable rise in performance. I will stop here.
+According to profiler, there are no more *"bottle necks"* where we can get noticeable rise in performance.
+
+## Increasing Hash table size
+
+For all this time, we had 1000 cells in our Hast table. Thanks to that, we got all this optimization ideas. It is time to increace amount of cells from 1000 to 150000. 
+
+Amount of collisions will drop tremendeously and the performance will rise.
+
+>Average search time: 1236 $\pm$ 10 ms
+
+| Version     | Abs. speedup      | Rel. speedup   | 
+| ------      | :---------------: | :------------: | 
+| -O2      | 1                 | 1              | 
+| Assembly Hash  | 1.11              | 1.11        |
+| AVX Search| 1.56              | 1.35          |
+| Size increace | 2.54              | 1.66          |
 
 ## Conclusion
 
