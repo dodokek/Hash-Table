@@ -3,8 +3,6 @@
 
 int main()
 {
-    const int is_dbg = 1;
-
     Text* InputStruct = (Text*) calloc (1, sizeof(Text));
     FILE* input_file = get_file (input_filename, "rb");
     GetLines (InputStruct, input_file);
@@ -17,10 +15,11 @@ int main()
     #else
         HashTableCtor (&Table, TABLE_SIZE, MURMUR_HASH);
     #endif
+    
     LoadData (InputStruct, &Table);
 
     StressTest (InputStruct, &Table);
     
-   // DumpTable (&Table, 100);
     HashTableDtor (&Table);
+    InputDtor (InputStruct);
 }

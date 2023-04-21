@@ -36,8 +36,6 @@ void HashTableCtor (HashTable* self, size_t size, HASH_FUNC_CODES hash_code)
     self->array = (HashTableNode*) aligned_alloc  (32, size * sizeof (HashTableNode));
     self->hash_code = hash_code;
 
-    // LOG ("Setting array\n");
-
     for (size_t i = 0; i < self->size; i++)
     {
         self->array[i].content =nullptr;
@@ -74,6 +72,7 @@ void HashTableDtor (HashTable* self)
     }
 
     free(self->array);
+
     self->array     = nullptr;
     self->hash_func = nullptr;
 
@@ -92,7 +91,9 @@ int FreeRecurs(HashTableNode* cur_node)
     }
 
     FreeRecurs (cur_node->next);
+    
     free (cur_node);
+    cur_node = nullptr;
 
     return SUCCESS;
 }
@@ -149,39 +150,21 @@ int AddMember (HashTable* self, __m256i* content, size_t len)
 }
 
 
-HashTableNode* CreateNode (__m256i* content)
-{
-    HashTableNode* new_node = (HashTableNode*) calloc (1, sizeof(HashTableNode));
-
-    new_node->content = content;
-    new_node->peers   = 1;                  // initially, node is the only peer in the cell
-    new_node->next    = nullptr;
-    new_node->is_head = false;
-
-    return new_node;
-}
-
-
 bool SearchMember (HashTable* self, char* content, size_t len)
 {
     uint32_t key = self->hash_func(content, len) % (uint32_t) self->size;
 
     HashTableNode* cur_node = &(self->array[key]);
 
-    // LOG ("\tSearching member %s\n", content);
-    
     int peers = cur_node->peers;
     for (int i = 0; i < peers; i++)
     {
         if (strcmp((char*)cur_node->content, content) == 0)
-        {
-            // LOG ("=== Found %s, key: %u\n", content, key);
             return SUCCESS_FOUND;
-        }
+            
         cur_node = cur_node->next;
     }
 
-    // LOG ("xxx Not found %s, key: %u\n", content, key);
 
     return NOT_FOUND;
 }
@@ -199,17 +182,11 @@ bool SearchMemberAVX (HashTable* self, __m256i* content, size_t len)
     {
         int cmp_mask = _mm256_testnzc_si256 (*content, *(cur_node->content));
 
-        // printf ("Cmp mask: %d\n", cmp_mask);
         if (cmp_mask == 0)
-        { 
-            // LOG ("+++ Found %s, key: %u\n", content, key);
             return SUCCESS_FOUND;
-        }
 
         cur_node = cur_node->next;
     }
-
-    // LOG ("xxx Not found %s, key: %u\n", content, key);
 
     return NOT_FOUND;
 }
@@ -218,28 +195,39 @@ bool SearchMemberAVX (HashTable* self, __m256i* content, size_t len)
 inline int asm_strcmp (char* dst, const char* src)
 {
     int result = 0;
+
     asm(".intel_syntax noprefix;"
-        "mov rsi, %1;"
-        "mov rdi, %2;"
-        "Next:"
-            "mov r11b, byte ptr [rsi];"
-            "mov r10b, byte ptr [rdi];"
+        "loop:"
+            "push r9;"
+            "push r10;"
+
+            "mov r9b, [rsi];"
+            "mov r10b, [rdi];"
+
+    	    "cmp r9b, 0;"
+    	    "je end;"
     	    "cmp r10b, 0;"
-    	    "je done;"
-    	    "cmp r11b, 0;"
-    	    "je done;"
-    	    "cmp r11b, r10b;"
-    	    "jne done;"
+    	    "je end;"
+
+    	    "cmp r9b, r10b;"
+    	    "jne end;"
     	    "inc rdi;"
     	    "inc rsi;"
-    	    "jmp Next;"
-        "done:"
-            "movzx rax, r10b;"
-            "movzx rbx, r11b;"
+    	    "jmp loop;"
+        "end:"
+    	    "movzx rax, r9b;"
+    	    "movzx rbx, r10b;"
     	    "sub rax, rbx;"
-        ".att_syntax"
-        : "=r" (result) : "r" (dst), "r" (src) : "rax", "rbx", "rsi", "rdi", "r10", "r11"
+
+            "pop r10;"
+            "pop r9;"
+
+
+        ".att_syntax" 
+        : "=a" (result)
+        : "S" (dst), "D" (src) : "rax", "rbx", "rsi", "rdi", "r9", "r10"
     );
+
     return result;
 }
 
@@ -251,37 +239,7 @@ inline int asm_strcmp (char* dst, const char* src)
 // Dump of table --------------------------------------------
 // ==========================================================
 
-// void DumpTable (HashTable* self, int dump_size)
-// {
-//     printf ("\n====================================\n");
-//     printf ("Hash Table Dump\n");
-//     printf ("====================================\n");
-
-//     printf ("Hash function code: %d\n", self->hash_code);
-//     printf ("Size: %lu\n", self->size);
-//     printf (">>> Elements\n");
-
-//     for (int i = 0; i < self->size; i++)
-//     {
-//         HashTableNode* cur_node = &(self->array[i]);
-//         if (cur_node->content == nullptr)
-//             continue;
-
-//         printf ("Key %d (%d):\n\t", i, self->array[i].peers);
-        
-//         while (cur_node->next != nullptr)
-//         {
-//             printf ("%s->", cur_node->content);
-//             cur_node = cur_node->next;
-//         }
-
-//         printf ("%s\n", cur_node->content);
-        
-//     }
-//     printf ("========== End of Dump =============\n");
-
-// }
-
+// Removed
 
 // ==========================================================
 // All sort of Hashes ---------------------------------------
@@ -334,4 +292,17 @@ uint32_t MurMurMurHash (const void* data_, int len)
     hash ^= hash >> 15;
 
     return hash;
+}
+
+
+HashTableNode* CreateNode (__m256i* content)
+{
+    HashTableNode* new_node = (HashTableNode*) calloc (1, sizeof(HashTableNode));
+
+    new_node->content = content;
+    new_node->peers   = 1;                  // initially, node is the only peer in the cell
+    new_node->next    = nullptr;
+    new_node->is_head = false;
+
+    return new_node;
 }
