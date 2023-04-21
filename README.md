@@ -4,7 +4,7 @@
 
 Goals of this project:
 - Inspect different hash functions and choose the best, by **minimizing** the amount of **collisions**.
-- Implement 3 types of **assembly optimizations** to speed up the *searching function*
+- Implement different types of **optimizations** to speed up the *searching function*
   
 > I assume that reader is familiar with the concept of hash tables and processor architecture.
 
@@ -186,7 +186,7 @@ uint32_t RorHash (const char* string)
 
 Pretty much the same result with less dispersion.
 
-If I had to choose from Rotate Hashes and previous Hash functions, I would definitely picked Rotate Hashes.  
+If I had to choose from Rotate Hashes and previous Hash functions, I would definitely picked Rotate Left hash.  
 
 However, we have much more efficient and complicated function...
 
@@ -226,11 +226,11 @@ Then let's have a **closer look** at our favorites:
 > Cyan - Rotate left hash.
 > Red  - Hashsum.
 
-At this point the supremacy of Murmur hash is obvious. If we had less words, I might have used Hashsum, but Murmur hash is much more fun to optimize.
+At this point the supremacy of Murmur hash is obvious. It has the lowest dispersion and collisions amount.
 
 ## Part 2. Optimizations
 
-In this part of the work we will **speed up our search function** by analysing *"bottle necks"* of the program.
+In this part of the work we will **speed up our search function** by analyzing *"bottle necks"* of the program.
 
 I will use **valgrind** to get profiling data and **kcachegrind** to visualize it. Also I will implement a stress-test, which searches *each word* in hash table *100 times*. 
 
@@ -538,9 +538,9 @@ According to profiler, there are no more *"bottle necks"* where we can get notic
 
 ## Increasing Hash table size
 
-For all this time, we had 1000 cells in our Hast table. Thanks to that, we got all this optimization ideas. It is time to increace amount of cells from 1000 to 150000. 
+For all this time, we had 1000 cells in our Hast table. Thanks to that, we got all these optimization ideas. It is time to increace amount of cells from 1000 to 150000. 
 
-Amount of collisions will drop tremendeously and the performance will rise.
+Amount of collisions will drop tremendously and the performance will rise.
 
 >Average search time: 1236 $\pm$ 10 ms
 
