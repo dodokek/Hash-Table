@@ -1,6 +1,8 @@
 #include "include/hash_table.hpp"
 
+
 extern "C" inline uint32_t MurMurAsm (const void* key, int length);
+
 
 void StressTest(Text* Input, HashTable* self)
 {
@@ -38,11 +40,10 @@ void HashTableCtor (HashTable* self, size_t size, HASH_FUNC_CODES hash_code)
 
     for (size_t i = 0; i < self->size; i++)
     {
-        self->array[i].content =nullptr;
+        self->array[i].content = nullptr;
         self->array[i].next    = nullptr;
         self->array[i].length  = 0;
         self->array[i].peers = 0;
-        self->array[i].is_head = true;
     }
 
     switch (hash_code)
@@ -68,7 +69,7 @@ void HashTableDtor (HashTable* self)
 {
     for (size_t i = 0; i < self->size; i++)
     {
-        FreeRecurs (&(self->array[i]));
+        FreeRecurs (&(self->array[i]), true);
     }
 
     free(self->array);
@@ -80,9 +81,9 @@ void HashTableDtor (HashTable* self)
 }
 
 
-int FreeRecurs(HashTableNode* cur_node)
+int FreeRecurs(HashTableNode* cur_node, bool begin)
 {
-    if (cur_node->is_head) return SUCCESS;
+    if (begin) return SUCCESS;
 
     if (cur_node->next == nullptr)
     {
@@ -90,7 +91,7 @@ int FreeRecurs(HashTableNode* cur_node)
         return SUCCESS;
     }
 
-    FreeRecurs (cur_node->next);
+    FreeRecurs (cur_node->next, false);
     
     free (cur_node);
     cur_node = nullptr;
@@ -123,7 +124,7 @@ int AddMember (HashTable* self, __m256i* content, size_t len)
     uint32_t key = self->hash_func(content, len) % (uint32_t) self->size;
         // LOG ("\tSTRING %s\n", (char*) content);
 
-    if (SearchMemberAVX (self, content, len) == NOT_FOUND)
+    if (SearchMember (self, (char*) content, len) == NOT_FOUND)
     {
 
         if (self->array[key].peers == 0)        // Corner case
@@ -155,15 +156,23 @@ bool SearchMember (HashTable* self, char* content, size_t len)
     uint32_t key = self->hash_func(content, len) % (uint32_t) self->size;
 
     HashTableNode* cur_node = &(self->array[key]);
-
+    
     int peers = cur_node->peers;
     for (int i = 0; i < peers; i++)
     {
-        if (strcmp((char*)cur_node->content, content) == 0)
+        // printf ("Comparing %s and %s\n", (char*)cur_node->content, content);
+        // int kek = asm_strcmp((char*)cur_node->content, content);
+        // printf ("Mask: %x\n", kek);
+
+        if (asm_strcmp((char*)cur_node->content, content) == 0)
+        {    
+            // printf ("Found %s\n", (char*)content);
             return SUCCESS_FOUND;
-            
+        }
         cur_node = cur_node->next;
     }
+
+    // printf ("Not Found %s\n", (char*)content);
 
 
     return NOT_FOUND;
@@ -192,44 +201,31 @@ bool SearchMemberAVX (HashTable* self, __m256i* content, size_t len)
 }
 
 
-inline int asm_strcmp (char* dst, const char* src)
+inline int asm_strcmp (const char* dst, const char* src)
 {
     int result = 0;
-
     asm(".intel_syntax noprefix;"
-        "loop:"
-            "push r9;"
-            "push r10;"
+        "mov rsi, %1;"
+        "mov rdi, %2;"
 
-            "mov r9b, [rsi];"
-            "mov r10b, [rdi];"
+        "pcmpeqb xmm0, xmm0;"
 
-    	    "cmp r9b, 0;"
-    	    "je end;"
-    	    "cmp r10b, 0;"
-    	    "je end;"
+        "movdqu xmm1, [rsi];"
+        "movdqu xmm2, [rdi];"
+        "pcmpeqb xmm1, xmm2;"
+        "xorps xmm1, xmm0;"
+        "pmovmskb eax, xmm1;"
+        "test eax, eax;"
 
-    	    "cmp r9b, r10b;"
-    	    "jne end;"
-    	    "inc rdi;"
-    	    "inc rsi;"
-    	    "jmp loop;"
-        "end:"
-    	    "movzx rax, r9b;"
-    	    "movzx rbx, r10b;"
-    	    "sub rax, rbx;"
-
-            "pop r10;"
-            "pop r9;"
-
-
-        ".att_syntax" 
-        : "=a" (result)
-        : "S" (dst), "D" (src) : "rax", "rbx", "rsi", "rdi", "r9", "r10"
+        ".att_syntax\n"
+        : "=r" (result) 
+        : "r" (dst), "r" (src) 
+        : "rbx", "rsi", "rdi", "r10", "r11", "xmm1", "xmm2", "xmm0"
     );
-
     return result;
 }
+
+
 
 
 
@@ -302,7 +298,6 @@ HashTableNode* CreateNode (__m256i* content)
     new_node->content = content;
     new_node->peers   = 1;                  // initially, node is the only peer in the cell
     new_node->next    = nullptr;
-    new_node->is_head = false;
 
     return new_node;
 }

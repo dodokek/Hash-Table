@@ -30,7 +30,6 @@ struct  HashTableNode
     size_t length;
     uint32_t peers;
     HashTableNode* next;
-    bool is_head;
 };
 
 struct HashTable
@@ -60,8 +59,8 @@ const char input_filename[] = "data/input.txt";
 
 //========================================================
 
-#define AVX_SEARCH
-#define MURASM
+// #define AVX_SEARCH
+// #define MURASM
 // #define ASM_STR
 
 
@@ -74,11 +73,11 @@ const char input_filename[] = "data/input.txt";
 
 //----------------------------------------------------
 
-void HashMain();
+
 
 void StressTest(Text* Input, HashTable* self);
 
-inline int asm_strcmp (char* dst, const char* src);
+inline int asm_strcmp (const char* dst, const char* src);
 
 int LoadData (Text* DataStruct, HashTable* self);
 
@@ -92,7 +91,7 @@ bool SearchMemberAVX (HashTable* self, __m256i* content, size_t len);
 
 void HashTableDtor (HashTable* self);
 
-int FreeRecurs (HashTableNode* cur_node);
+int FreeRecurs(HashTableNode* cur_node, bool begin);
 
 HashTableNode* CreateNode (__m256i* content);
 
