@@ -11,7 +11,7 @@ int main()
     HashTable Table = {};
 
     #ifdef MURASM
-        HashTableCtor (&Table, TABLE_SIZE, MURASM_HASH);
+        HashTableCtor (&Table, TABLE_SIZE, CRC32);
     #else
         HashTableCtor (&Table, TABLE_SIZE, MURMUR_HASH);
     #endif

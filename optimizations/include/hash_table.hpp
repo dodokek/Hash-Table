@@ -22,6 +22,7 @@ enum HASH_FUNC_CODES
     ROL_HASH,
     MURMUR_HASH,
     MURASM_HASH,
+    CRC32,
 };
 
 struct  HashTableNode
@@ -60,7 +61,7 @@ const char input_filename[] = "data/input.txt";
 //========================================================
 
 // #define AVX_SEARCH
-// #define MURASM
+#define MURASM
 // #define ASM_STR
 
 
