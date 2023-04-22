@@ -60,7 +60,7 @@ const char input_filename[] = "data/input.txt";
 
 //========================================================
 
-// #define AVX_SEARCH
+#define AVX_SEARCH
 #define MURASM
 // #define ASM_STR
 
