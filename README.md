@@ -39,7 +39,7 @@ This is *the worst* ever hash function that you can imagine. All elements will b
 
 Code:
 ~~~C++
-uint32_t OneHash (const char* string)
+uint32_t OneHash (const char* string, size_t len)
 {
     return 1;
 }
@@ -57,7 +57,7 @@ The search would be *far from O(1)*. I implemented it for educational purposes o
 We will return the ASCII number of the first character in the string. 
 
 ~~~C++
-uint32_t FirstLetterHash (const char* string)
+uint32_t FirstLetterHash (const char* string, size_t len)
 {
     return (uint32_t) string[0];
 }
@@ -77,9 +77,9 @@ This hash function might be used somewhere. However we have 14000 words, which m
 We will return string length. 
 
 ~~~C++
-uint32_t LengthHash (const char* string)
+uint32_t LengthHash (const char* string, size_t len)
 {
-    return (uint32_t) strlen(string);
+    return len;
 }
 ~~~
 
@@ -97,7 +97,7 @@ We have even more collisions. English language has on average 5 letters in the w
 We will return the ASCII sum of characters in the string. 
 
 ~~~C++
-uint32_t SumHash (const char* string)
+uint32_t SumHash (const char* string, size_t len)
 {
     uint32_t hashsum = 0;
 
@@ -111,29 +111,23 @@ uint32_t SumHash (const char* string)
 }
 ~~~
 
-![image](https://user-images.githubusercontent.com/57039216/232112313-789f9850-72b3-43be-bbca-6d973615aef1.png)
+![image](https://user-images.githubusercontent.com/57039216/233829584-69b55deb-b8ca-4bdb-bed5-5c0424b27560.png)
 
 >Dispersion: 189
 
 
-You can notice the huge improvement. This is one of the simplest and effective algorithms. Maximal amount of collisions decreased 400 times :)
+You can notice the huge improvement. Maximal amount of collisions decreased 400 times.
 
 
 ### Rotate-right hash
 
-This hash would be calculated with the help of *Rotate function*, which works like that:
-
-~~~
-Say binary number 01001001 equals to abcdefgh
-
-abcdefgh --> *RotateRight* --> habcdefg 
-~~~
-
-From $01001001_2$ we get $10100100_2$
-
-Here is the code:
-
 ~~~C++
+
+uint32_t RorFunc (int num, int shift)  
+{
+    return (num >> shift) | (num << (32 - shift));
+}
+
 uint32_t RorHash (const char* string)
 {
     unsigned int hash  = 0;
@@ -164,6 +158,11 @@ The search should be statistically quicker, if we pick a random element.
 The same algorithm as previous, but bits rotating to the left.
 
 ~~~C++
+uint32_t RolFunc (int num, int shift)
+{
+    return (num << shift) | (num >> (32 - shift));
+}
+
 uint32_t RorHash (const char* string)
 {
     unsigned int hash  = 0;
@@ -219,12 +218,14 @@ Let's look at all functions *on the same* graphic:
 
 Then let's have a **closer look** at our favorites:
 
-![image](https://user-images.githubusercontent.com/57039216/232110503-21f4e0cf-92c4-418a-b26c-962ae22ecbb7.png)
+![image](https://user-images.githubusercontent.com/57039216/233830212-db74fb3d-7c26-44cf-adf5-f0b12e86a832.png)
 
 > Green - Murmur hash.
 > Blue - Rotate right hash. 
 > Cyan - Rotate left hash.
 > Red  - Hashsum.
+
+![image](https://user-images.githubusercontent.com/57039216/233831148-4887cc51-3337-4356-8859-f5462da1be31.png)
 
 At this point the supremacy of Murmur hash is obvious. If we had less words, I might have used Hashsum, but Murmur hash is much more fun to optimize.
 
@@ -249,14 +250,16 @@ Also I used *\<chrono>* library to measure the elapsed time.
 
 >Average search time: 3142 $\pm$ 20 ms
 
+
+
+
 ### Version 1 - Replacing Murmur hash with its assembly version.
 
 Let me visualize profiler data for you:
 
-<img src="https://user-images.githubusercontent.com/57039216/233388862-fc4fa39e-38f3-4aaa-9598-70059f657ed3.png" width="700px">
+<img src="https://user-images.githubusercontent.com/57039216/233829073-1e5fee1e-d99f-42ea-82fe-05cc4e860be0.png" width= "500px">
 
-
-According to profiler, Murmur Hash affects the performance the most.
+According to profiler, Murmur Hash affects the performance pretty hard.
 We can rewrite it on Assembly. I will implement it in the separate file and then link it with our main program.
 
 <details>
@@ -351,7 +354,8 @@ jge	.loop
 ~~~
 </details>
 
-I've tried to combine together operations with memory work and bites shuffling for better conveyer work. This gave me 5% relative performance boost.
+I've made instruction reordering for better conveyer work. This gave me 5% additional performance boost.
+
 </br>
 </br>
 
@@ -362,16 +366,17 @@ I've tried to combine together operations with memory work and bites shuffling f
 | -O2      | 1                 | 1              | 
 | Assembly Hash  | 1.11              | 1.11           |
 
-### Replacing strcmp with inline assembly
+
+### Version 2 - Replacing strcmp with inline assembly
 
 Let's once again look on profiler data:
 
-<img src="https://user-images.githubusercontent.com/57039216/233393870-7e51ac85-59c9-49b0-a337-e8c1977d7cb4.png" width="700px">
+<img src="https://user-images.githubusercontent.com/57039216/233829114-e1ce5b17-37d2-4c21-8bfd-14bc382d5d1a.png" width="500px">
 
-According to profiler, the next target is strcmp function. I will rewrite it with **inline assembly**.
+According to profiler, the next target is *strcmp*. I will rewrite it with **inline assembly**.
 
 <details>
-<summary>Strncpy inline assembly implementation</summary>
+<summary>Strcpy inline assembly implementation</summary>
 
 ~~~C++
 asm(".intel_syntax noprefix;"
@@ -417,11 +422,75 @@ asm(".intel_syntax noprefix;"
 | Assembly Hash  | 1.11              | 1.11           |
 | Assembly strcmp  | 0.58              | 0.52          |
 
-It turns out, that **original** version of *strcmp* is **much faster**. Unfortunately, this optimisation is useless. I won't count it in the final ratings.
+The search became much slower, because original *strcmp* function uses AVX2 instructions. Why don't we use them too? 
 
-We need to find another way to speed up the program.
+We work with aligned data, which allows to write more effective code.
 
-## Using AVX2 instructions in Search function
+
+<details>
+<summary>Strcpy inline assembly implementation</summary>
+
+~~~C++
+asm(    ".intel_syntax noprefix;"
+        "mov rsi, %1;"
+        "mov rdi, %2;"
+
+        "pcmpeqb xmm0, xmm0;"
+
+        "movdqu xmm1, [rsi];"
+        "movdqu xmm2, [rdi];"
+        "pcmpeqb xmm1, xmm2;"
+        "xorps xmm1, xmm0;"
+        "pmovmskb eax, xmm1;"
+        
+        "test eax, eax;"
+        "jnz not_equal;"
+
+        "pcmpeqb xmm0, xmm0;"
+        "movdqu xmm1, [rsi + 16];"
+        "movdqu xmm2, [rdi + 16];"
+        "pcmpeqb xmm1, xmm2;"
+        "xorps xmm1, xmm0;"
+        "pmovmskb eax, xmm1;"
+        "test eax, eax;"
+
+        "jz equal;"
+        "jnz not_equal;"
+
+        "equal:\n"
+        "xor rax, rax;"
+
+        "not_equal:\n"
+        "mov rax, 1;"
+
+        ".att_syntax\n"
+        : "=r" (result) 
+        : "r" (dst), "r" (src) 
+        : "rbx", "rsi", "rdi", "r10", "r11", "xmm1", "xmm2", "xmm0"
+    );
+~~~
+</details>
+</br>
+
+>Average search time: 2967 ms
+
+| Version     | Abs. speedup      | Rel. speedup   | 
+| ------      | :---------------: | :------------: | 
+| -O2         | 1                 | 1              | 
+| Assembly strcmp  | 0.58         | 0.52          |
+| Assembly Hash  | 1.11              | 1.11           |
+| Better Assembly strcmp  | 1.05      | 1.02         |
+
+Now our *strcmp* function can compete with the one from *STL*. However inline assebly has a lot of disadvantages: code became **less readable and portable**.
+
+The wise choice is to drop this optimization. *Strcmp* will be replaced further anyway. 
+
+
+## Version 3 - Using AVX2 instructions in Search function
+
+<img src="https://user-images.githubusercontent.com/57039216/233829114-e1ce5b17-37d2-4c21-8bfd-14bc382d5d1a.png" width="500px">
+
+We can see, thath *Searching function* itself affects performance a lot.
 
 From **Length hash** we already know, that there are no words, longer than 20 symbols. It means we can fit each of them into *__m256i* format. 
 
@@ -534,22 +603,59 @@ The full list of functions in kcachegrind.
 
 ![image](https://user-images.githubusercontent.com/57039216/232727382-007cd349-23de-4e75-81e1-bdaaaa108b9d.png)
 
-According to profiler, there are no more *"bottle necks"* where we can get noticeable rise in performance.
+According to profiler, there are no more *"bottle necks"* where we can get noticeable rise in performance. But we can dive deeper in previous optimizations.
 
-## Increasing Hash table size
+## Version 4 - Replacing hash function once again
 
-For all this time, we had 1000 cells in our Hast table. Thanks to that, we got all this optimization ideas. It is time to increace amount of cells from 1000 to 150000. 
+In the second optimization we replaced Murmur hash with its assembly version. To make hash calculation even faster, we can use CRC32 instead. 
 
-Amount of collisions will drop tremendeously and the performance will rise.
+CRC32 has one huge advantage - we can call it directly from assembler.
 
->Average search time: 1236 $\pm$ 10 ms
+<details>
+<summary> CRC32 assembly realisation </summary>
+
+~~~C++
+section .text
+
+global crc32
+
+crc32:
+    xor     rax, rax
+    crc32   rax, qword [rdi]
+    crc32   rax, qword [rdi+8]
+    crc32   rax, qword [rdi+16]
+    crc32   rax, qword [rdi+24]
+    ret
+~~~
+
+</details>
+
+>Average search time 897 ms
 
 | Version     | Abs. speedup      | Rel. speedup   | 
 | ------      | :---------------: | :------------: | 
 | -O2      | 1                 | 1              | 
-| Assembly Hash  | 1.11              | 1.11        |
+| Assembly Hash  | 1.11              | 1.11     |
 | AVX Search| 1.56              | 1.35          |
-| Size increace | 2.54              | 1.66          |
+| CRC32 Hash| 3.47              | 2.35          |
+
+Huge increase in performance, the last optimization is coming
+
+## Increasing Hash table size
+
+For all this time, we had 1000 cells in our Hast table. Thanks to that, we got all this optimization ideas. It is time to increase amount of cells from 1000 to 150000. 
+
+Amount of collisions will drop tremendeously and the performance will rise.
+
+>Average search time: 698 ms
+
+| Version     | Abs. speedup      | Rel. speedup   | 
+| ------      | :---------------: | :------------: | 
+| -O2      | 1                 | 1              | 
+| Assembly Hash  | 1.11              | 1.11     |
+| AVX Search| 1.56              | 1.35          |
+| CRC32 Hash| 3.47              | 2.35          |
+| Size increase| 4.5              | 1.28          |
 
 As soon as we get the most out of our program, I will stop here.
 

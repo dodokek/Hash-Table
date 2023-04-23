@@ -9,14 +9,9 @@ names = ["Length Hash", "Hashsum", "FirstAscii", "Ror Hash", "Rol Hash", "Murmur
 clrs = ['black', 'red', 'brown', 'blue', 'cyan', 'green']
 
 
-for i in range(0,6):
+for i in range(0,1):
     ax = plt.gca()
     # ax.set_ylim([0, 150])
-
-    if names[i] == "FirstAscii":
-        ax.set_xlim([0,200])
-    if names[i] == "Length Hash":
-        ax.set_xlim([0,100])
 
 
     index_1 = f.readline().split(" ")
@@ -47,16 +42,19 @@ for i in range(0,6):
     # Man, i love python for its inreadable scripts like this one
     
     # print (sum(colls_2))
-    index      = np.array (index_2)
-    collisions = np.array (colls_2)
-    print (names[i], np.var(collisions));
-    plt.bar(index, collisions, align ='center', color = clrs[i])
+    index      = ["Length Hash","FirstAscii", "Hashsum", "Ror Hash", "Rol Hash", "Murmur hash"]
+    collisions = np.array ([589413, 8954, 28424, 189, 178, 93, 15])
+    kek = np.array([1, 2, 3, 4, 5, 6])
+
+    plt.bar(kek, collisions, align ='center')
+    plt.xticks(kek, index)
+    
     plt.xlabel("Index")
     plt.ylabel("Collisions")
     f.readline()
 
-    plt.savefig(names[i] + ".png")
-    plt.clf()
+    plt.savefig("bebra.png")
+    # plt.clf()
 
 
 # Putting info and drawing graph

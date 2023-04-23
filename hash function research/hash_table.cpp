@@ -268,12 +268,12 @@ uint32_t SumHash (const char* string)
 
 uint32_t RorFunc (int num, int shift)   // 011000001 ---> 10110000
 {
-    return (num >> shift) | (num << (sizeof (uint32_t) - shift));
+    return (num >> shift) | (num << (32 - shift));
 }
 
 uint32_t RolFunc (int num, int shift)   // 10011000 ----> 0011001
 {
-    return (num << shift) | (num >> (sizeof (uint32_t) - shift));
+    return (num << shift) | (num >> (32 - shift));
 }
 
 uint32_t RolHash (const char* str)

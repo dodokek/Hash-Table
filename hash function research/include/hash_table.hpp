@@ -49,7 +49,7 @@ enum RETURN_CODES
 
 //========================================================
 
-const int TABLE_SIZE = 1013;
+const int TABLE_SIZE = 3013;
 const char input_filename[] = "data/input.txt";
 const char csv_filename[]   = "data/csv_file.csv";
 

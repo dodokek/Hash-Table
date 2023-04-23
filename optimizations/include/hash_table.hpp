@@ -55,14 +55,13 @@ enum RETURN_CODES
 
 const int MAX_WORD_LEN = 32;
 const int TABLE_SIZE = 15013;
-const char input_filename[] = "data/input2.txt";
+const char input_filename[] = "data/input.txt";
 
 
 //========================================================
 
 // #define AVX_SEARCH
-#define MURASM
-// #define ASM_STR
+// #define MURASM
 
 
 #ifndef NO_LOG

@@ -160,19 +160,16 @@ bool SearchMember (HashTable* self, char* content, size_t len)
     int peers = cur_node->peers;
     for (int i = 0; i < peers; i++)
     {
-        printf ("Comparing %s and %s\n", (char*)cur_node->content, content);
-        int kek = asm_strcmp((char*)cur_node->content, content);
-        printf ("Mask: %x\n", kek);
 
-        // if (asm_strcmp((char*)cur_node->content, content) == 0)
-        // {    
-        //     printf ("Found %s\n", (char*)content);
-        //     return SUCCESS_FOUND;
-        // }
+        if (strcmp((char*)cur_node->content, content) == 0)
+        {    
+            // printf ("Found %s\n", (char*)content);
+            return SUCCESS_FOUND;
+        }
         cur_node = cur_node->next;
     }
 
-    printf ("Not Found %s\n", (char*)content);
+    // printf ("Not Found %s\n", (char*)content);
 
 
     return NOT_FOUND;
