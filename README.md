@@ -50,7 +50,7 @@ uint32_t OneHash (const char* string, size_t len)
 >Dispersion: 589413
 
 
-The search would be *far from O(1)*. I implemented it for educational purposes only.
+The search would be *O(n)* instead of *O(1)*. I implemented it for educational purposes only.
 
 ### First letter ASCII code hash
 
@@ -227,7 +227,7 @@ Then let's have a **closer look** at our favorites:
 
 ![image](https://user-images.githubusercontent.com/57039216/233831148-4887cc51-3337-4356-8859-f5462da1be31.png)
 
-At this point the supremacy of Murmur hash is obvious. If we had less words, I might have used Hashsum, but Murmur hash is much more fun to optimize.
+At this point the supremacy of Murmur hash is obvious.
 
 ## Part 2. Optimizations
 
@@ -376,7 +376,7 @@ Let's once again look on profiler data:
 According to profiler, the next target is *strcmp*. I will rewrite it with **inline assembly**.
 
 <details>
-<summary>Strcpy inline assembly implementation</summary>
+<summary>Strcmp inline assembly implementation</summary>
 
 ~~~C++
 asm(".intel_syntax noprefix;"
@@ -428,30 +428,18 @@ We work with aligned data, which allows to write more effective code.
 
 
 <details>
-<summary>Strcpy inline assembly implementation</summary>
+<summary>Strcmp inline assembly AVX implementation</summary>
 
 ~~~C++
 asm(    ".intel_syntax noprefix;"
         "mov rsi, %1;"
         "mov rdi, %2;"
 
-        "pcmpeqb xmm0, xmm0;"
-
         "movdqu xmm1, [rsi];"
         "movdqu xmm2, [rdi];"
         "pcmpeqb xmm1, xmm2;"
-        "xorps xmm1, xmm0;"
         "pmovmskb eax, xmm1;"
         
-        "test eax, eax;"
-        "jnz not_equal;"
-
-        "pcmpeqb xmm0, xmm0;"
-        "movdqu xmm1, [rsi + 16];"
-        "movdqu xmm2, [rdi + 16];"
-        "pcmpeqb xmm1, xmm2;"
-        "xorps xmm1, xmm0;"
-        "pmovmskb eax, xmm1;"
         "test eax, eax;"
 
         "jz equal;"
@@ -466,7 +454,7 @@ asm(    ".intel_syntax noprefix;"
         ".att_syntax\n"
         : "=r" (result) 
         : "r" (dst), "r" (src) 
-        : "rbx", "rsi", "rdi", "r10", "r11", "xmm1", "xmm2", "xmm0"
+        : "rbx", "rsi", "rdi", "r10", "r11", "xmm1", "xmm2"
     );
 ~~~
 </details>
@@ -477,13 +465,13 @@ asm(    ".intel_syntax noprefix;"
 | Version     | Abs. speedup      | Rel. speedup   | 
 | ------      | :---------------: | :------------: | 
 | -O2         | 1                 | 1              | 
-| Assembly strcmp  | 0.58         | 0.52          |
 | Assembly Hash  | 1.11              | 1.11           |
-| Better Assembly strcmp  | 1.05      | 1.02         |
+| Assembly strcmp  | 0.58         | 0.52          |
+| Better Assembly strcmp  | 1.14      | 1.02         |
 
 Now our *strcmp* function can compete with the one from *STL*. However inline assebly has a lot of disadvantages: code became **less readable and portable**.
 
-The wise choice is to drop this optimization. *Strcmp* will be replaced further anyway. 
+As long as relative growth is small, the wise choice is to drop this optimization. *Strcmp* will be replaced further anyway. 
 
 
 ## Version 3 - Using AVX2 instructions in Search function
@@ -500,7 +488,7 @@ From **Length hash** we already know, that there are no words, longer than 20 sy
 ~~~C++
 bool SearchMember (HashTable* self, const char content[], size_t len)
 {
-    uint32_t key = self->hash_func(content, len) % (uint32_t) self->size;
+    uint32_t key = murmurasm(content, len) % (uint32_t) self->size;
 
     HashTableNode* cur_node = &(self->array[key]);
 
@@ -528,7 +516,7 @@ With the help of AVX2 instructions we'll be able to compare strings much faster.
 ~~~C++
 bool SearchMemberAVX (HashTable* self, const char content[], size_t len)
 {
-    uint32_t key = self->hash_func(content, len) % (uint32_t) self->size;
+    uint32_t key = murmurasm(content, len) % (uint32_t) self->size;
     HashTableNode* cur_node = self->array[key];
 
     alignas(32) char word_buffer[MAX_WORD_LEN] = ""; 
@@ -563,7 +551,7 @@ To get the most out of it, I will transform array of *char** input words into *_
 ~~~C++
 bool SearchMemberAVX (HashTable* self, __m256i* content, size_t len)
 {
-    uint32_t key = self->hash_func(content, len) % (uint32_t) self->size;
+    uint32_t key = murmurasm(content, len) % (uint32_t) self->size;
 
     HashTableNode* cur_node = &(self->array[key]);
 
@@ -605,7 +593,7 @@ The full list of functions in kcachegrind.
 
 According to profiler, there are no more *"bottle necks"* where we can get noticeable rise in performance. But we can dive deeper in previous optimizations.
 
-## Version 4 - Replacing hash function once again
+## Version 4 - Replacing hash function with CRC32
 
 In the second optimization we replaced Murmur hash with its assembly version. To make hash calculation even faster, we can use CRC32 instead. 
 
@@ -639,7 +627,7 @@ crc32:
 | AVX Search| 1.56              | 1.35          |
 | CRC32 Hash| 3.47              | 2.35          |
 
-Huge increase in performance, the last optimization is coming
+Huge increase in performance, the last optimization is coming...
 
 ## Increasing Hash table size
 
@@ -663,11 +651,11 @@ As soon as we get the most out of our program, I will stop here.
 
 It turns out, that **not every optimization speeds up** the program, **sometimes** it only **slows it down**.
 
-At the end we got  *Search function*'s performance increase 1.56 times.
+At the end we got  *Search function*'s performance increase 4.5 times.
 Let's calculate Ded's coefficient:
 
 $Coef_{ded}  = \frac{acceleration}{assembly\space lines} \cdot 1000$
 
-$Coef_{ded} = \frac{2.54}{80} \cdot 1000 \approx 31$
+$Coef_{ded} = \frac{4.5}{80} \cdot 1000 \approx 56$
 
 
