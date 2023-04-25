@@ -18,7 +18,7 @@ int main()
     
     LoadData (InputStruct, &Table);
 
-    StressTest (InputStruct, &Table);
+    // StressTest (InputStruct, &Table);
     
     HashTableDtor (&Table);
     InputDtor (InputStruct);

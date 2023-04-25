@@ -155,47 +155,52 @@ bool SearchMember (HashTable* self, char* content, size_t len)
 {
     uint32_t key = self->hash_func(content, len) % (uint32_t) self->size;
 
-    HashTableNode* cur_node = &(self->array[key]);
-    
-    int peers = cur_node->peers;
+    return SearchInList (&(self->array[key]), content);    
+}
+
+
+bool SearchInList (HashTableNode* list_node, char* content)
+{
+    int peers = list_node->peers;
+
     for (int i = 0; i < peers; i++)
     {
-
-        if (strcmp((char*)cur_node->content, content) == 0)
-        {    
-            // printf ("Found %s\n", (char*)content);
+        if (strcmp((char*)list_node->content, content) == 0)
             return SUCCESS_FOUND;
-        }
-        cur_node = cur_node->next;
+        
+        list_node = list_node->next;
     }
-
-    // printf ("Not Found %s\n", (char*)content);
-
 
     return NOT_FOUND;
 }
-
 
 
 bool SearchMemberAVX (HashTable* self, __m256i* content, size_t len)
 {
     uint32_t key = self->hash_func(content, len) % (uint32_t) self->size;
 
-    HashTableNode* cur_node = &(self->array[key]);
+    return SearchInListAVX(&(self->array[key]), content);  
+}
 
-    int peers = cur_node->peers;
+
+bool SearchInListAVX (HashTableNode* list_node, __m256i* content)
+{
+    int peers = list_node->peers;
+
     for (int i = 0; i < peers; i++)
     {
-        int cmp_mask = _mm256_testnzc_si256 (*content, *(cur_node->content));
+        int cmp_mask = _mm256_testnzc_si256 (*content, *(list_node->content));
 
         if (cmp_mask == 0)
+        {
             return SUCCESS_FOUND;
-
-        cur_node = cur_node->next;
+        }
+        list_node = list_node->next;
     }
 
     return NOT_FOUND;
 }
+
 
 
 inline int asm_strcmp (const char* dst, const char* src)
