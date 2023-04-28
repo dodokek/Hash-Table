@@ -38,7 +38,6 @@ struct HashTable
     HashTableNode* array;
     size_t size;
     uint32_t (*hash_func) (const void*, int);
-    enum HASH_FUNC_CODES hash_code;
 };
 
 
@@ -55,7 +54,7 @@ enum RETURN_CODES
 
 const int MAX_WORD_LEN = 32;
 const int TABLE_SIZE = 1013;
-const char input_filename[] = "data/input2.txt";
+const char input_filename[] = "data/input.txt";
 
 
 //========================================================
@@ -73,7 +72,7 @@ const char input_filename[] = "data/input2.txt";
 
 //----------------------------------------------------
 
-
+extern "C" inline uint32_t MurMurAsm (const void* key, int length);
 
 void StressTest(Text* Input, HashTable* self);
 
@@ -83,7 +82,7 @@ int LoadData (Text* DataStruct, HashTable* self);
 
 void DumpTableInCsv (HashTable* self, FILE* csv_file);
 
-void HashTableCtor (HashTable* self, size_t size, HASH_FUNC_CODES hash_code);
+void HashTableCtor (HashTable* self, size_t size, uint32_t (*hash_func) (const void* data, int len));
 
 bool SearchMember (HashTable* self, char* content, size_t len);
 

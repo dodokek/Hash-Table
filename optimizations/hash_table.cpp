@@ -27,16 +27,14 @@ void StressTest(Text* Input, HashTable* self)
 }
 
 
-void HashTableCtor (HashTable* self, size_t size, HASH_FUNC_CODES hash_code)
+void HashTableCtor (HashTable* self, size_t size, uint32_t (*hash_func) (const void* data, int len))
 {
     LOG (">>>>>>Building Hash table\n");
-    LOG ("\tCode: %d\n", hash_code);
 
     assert (size > 0 && self != nullptr);
 
     self->size = size;
     self->array = (HashTableNode*) aligned_alloc  (32, size * sizeof (HashTableNode));
-    self->hash_code = hash_code;
 
     for (size_t i = 0; i < self->size; i++)
     {
@@ -46,19 +44,7 @@ void HashTableCtor (HashTable* self, size_t size, HASH_FUNC_CODES hash_code)
         self->array[i].peers = 0;
     }
 
-    switch (hash_code)
-    {
-    case MURMUR_HASH:
-        self->hash_func = MurMurMurHash;
-        break;
-
-    case MURASM_HASH:
-        self->hash_func = MurMurAsm;
-        break;
-    
-    default:
-        break;
-    }
+    self->hash_func = hash_func;
 
     LOG ("End of build\n");
 

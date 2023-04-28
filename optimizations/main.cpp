@@ -11,14 +11,14 @@ int main()
     HashTable Table = {};
 
     #ifdef MURASM
-        HashTableCtor (&Table, TABLE_SIZE, MURASM_HASH);
+        HashTableCtor (&Table, TABLE_SIZE, MurMurAsm);
     #else
-        HashTableCtor (&Table, TABLE_SIZE, MURMUR_HASH);
+        HashTableCtor (&Table, TABLE_SIZE, MurMurMurHash);
     #endif
     
     LoadData (InputStruct, &Table);
 
-    // StressTest (InputStruct, &Table);
+    StressTest (InputStruct, &Table);
     
     HashTableDtor (&Table);
     InputDtor (InputStruct);
