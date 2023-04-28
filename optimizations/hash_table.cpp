@@ -1,7 +1,6 @@
 #include "include/hash_table.hpp"
 
 
-extern "C" inline uint32_t MurMurAsm (const void* key, int length);
 
 
 void StressTest(Text* Input, HashTable* self)
