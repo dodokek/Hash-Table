@@ -1,8 +1,6 @@
 #include "include/hash_table.hpp"
 
 
-
-
 void StressTest(Text* Input, HashTable* self)
 {
      std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();

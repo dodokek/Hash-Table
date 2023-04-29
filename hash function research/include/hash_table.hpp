@@ -49,7 +49,7 @@ const int HASHF_AMOUNT = 7;
 
 //========================================================
 
-const int TABLE_SIZE = 3013;
+const int TABLE_SIZE = 15013;
 const char input_filename[] = "data/input.txt";
 const char csv_filename[]   = "data/csv_file.csv";
 

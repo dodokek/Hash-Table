@@ -225,7 +225,7 @@ Then let's have a **closer look** at our favorites:
 > Cyan - Rotate left hash.
 > Red  - Hashsum.
 
-![image](https://user-images.githubusercontent.com/57039216/233831148-4887cc51-3337-4356-8859-f5462da1be31.png)
+![image](https://user-images.githubusercontent.com/57039216/235290214-42f91996-7b27-4e38-80f8-773c63f75935.png)
 
 At this point the supremacy of Murmur hash is obvious.
 
@@ -631,7 +631,7 @@ Huge increase in performance, the last optimization is coming...
 
 ## Increasing Hash table size
 
-For all this time, we had 1000 cells in our Hast table. Thanks to that, we got all this optimization ideas. It is time to increase amount of cells from 1000 to 150000. 
+For all this time, we had 1000 cells in our Hast table. Thanks to that, we got all this optimization ideas. It is time to increase amount of cells from 1000 to 15000. 
 
 Amount of collisions will drop tremendeously and the performance will rise.
 

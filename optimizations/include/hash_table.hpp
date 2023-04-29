@@ -53,7 +53,7 @@ enum RETURN_CODES
 //========================================================
 
 const int MAX_WORD_LEN = 32;
-const int TABLE_SIZE = 1013;
+const int TABLE_SIZE = 15013;
 const char input_filename[] = "data/input.txt";
 
 
