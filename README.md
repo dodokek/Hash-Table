@@ -631,6 +631,8 @@ Huge increase in performance, the last optimization is coming...
 
 ## Increasing Hash table size
 
+This optimization poisioned last in education purposes. It would have been too easy with small load factor at the beginning.
+
 For all this time, we had 1000 cells in our Hast table. Thanks to that, we got all this optimization ideas. It is time to increase amount of cells from 1000 to 15000. 
 
 Amount of collisions will drop tremendeously and the performance will rise.
