@@ -113,7 +113,7 @@ uint32_t SumHash (const char* string, size_t len)
 
 ![image](https://user-images.githubusercontent.com/57039216/233829584-69b55deb-b8ca-4bdb-bed5-5c0424b27560.png)
 
->Dispersion: 189
+>Dispersion: 135
 
 
 You can notice the huge improvement. Maximal amount of collisions decreased 400 times.
@@ -145,7 +145,7 @@ uint32_t RorHash (const char* string)
 
 ![image](https://user-images.githubusercontent.com/57039216/232112048-4300c910-d112-48df-bc87-acb17a5753be.png)
 
->Dispersion: 178
+>Dispersion: 120
 
 
 We didn't get less collisions, but dispersion became slightly better.
