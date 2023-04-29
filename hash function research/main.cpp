@@ -11,9 +11,20 @@ int main()
     HashTable Table = {};
     FILE* csv_file = get_file (csv_filename, "w+");
 
-    for (HASH_FUNC_CODES code = LENGTH_HASH; code <= MURMUR_HASH; code = HASH_FUNC_CODES(code + 1))
+    uint32_t (*FuncArray[])(const char*, int) =  
     {
-        HashTableCtor (&Table, TABLE_SIZE, code);
+        OneHash,
+        FirstLetterHash,    
+        LengthHash,
+        SumHash,
+        RorHash,
+        RolHash,
+        MurMurMurHash
+    };
+
+    for (int i = 0; i < HASHF_AMOUNT; i++)
+    {
+        HashTableCtor (&Table, TABLE_SIZE, FuncArray[i]);
         
         LoadData (InputStruct, &Table);
         

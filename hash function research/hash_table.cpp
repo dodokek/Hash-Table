@@ -1,16 +1,14 @@
 #include "include/hash_table.hpp"
 
 
-void HashTableCtor (HashTable* self, size_t size, HASH_FUNC_CODES hash_code)
+void HashTableCtor (HashTable* self, size_t size, uint32_t (*hash_func) (const char* data, int len))
 {
     LOG (">>>>>>Building Hash table\n");
-    LOG ("\tCode: %d\n", hash_code);
 
     assert (size > 0 && self != nullptr);
 
     self->size = size;
     self->array = (HashTableNode*) calloc (size, sizeof (HashTableNode));
-    self->hash_code = hash_code;
 
     // LOG ("Setting array\n");
 
@@ -20,42 +18,9 @@ void HashTableCtor (HashTable* self, size_t size, HASH_FUNC_CODES hash_code)
         self->array[i].next    = nullptr;
         self->array[i].length  = 0;
         self->array[i].peers = 0;
-        self->array[i].is_head = true;
     }
 
-    switch (hash_code)
-    {
-    case LENGTH_HASH:
-        self->hash_func = LengthHash;
-        break;
-
-    case CONST_HASH:
-        self->hash_func = OneHash;
-        break;
-    
-    case SUM_HASH:
-        self->hash_func = SumHash;
-        break;
-
-    case FIRST_ASCII_HASH:
-        self->hash_func = FirstLetterHash;
-        break;
-    
-    case ROR_HASH:
-        self->hash_func = RorHash;
-        break;
-    
-    case ROL_HASH:
-        self->hash_func = RolHash;
-        break;
-
-    case MURMUR_HASH:
-        self->hash_func = MurMurMurHash;
-        break;
-    
-    default:
-        break;
-    }
+    self->hash_func = hash_func;
 
     LOG ("End of build\n");
 
@@ -66,7 +31,7 @@ void HashTableDtor (HashTable* self)
 {
     for (size_t i = 0; i < self->size; i++)
     {
-        FreeRecurs (&(self->array[i]));
+        FreeRecurs (&(self->array[i]), true);
     }
 
     free(self->array);
@@ -77,9 +42,9 @@ void HashTableDtor (HashTable* self)
 }
 
 
-int FreeRecurs(HashTableNode* cur_node)
+int FreeRecurs(HashTableNode* cur_node, bool begin)
 {
-    if (cur_node->is_head) return SUCCESS;
+    if (begin) return SUCCESS;
 
     if (cur_node->next == nullptr)
     {
@@ -87,11 +52,14 @@ int FreeRecurs(HashTableNode* cur_node)
         return SUCCESS;
     }
 
-    FreeRecurs (cur_node->next);
+    FreeRecurs (cur_node->next, false);
+    
     free (cur_node);
+    cur_node = nullptr;
 
     return SUCCESS;
 }
+
 
 
 // ==========================================================
@@ -114,7 +82,7 @@ int AddMember (HashTable* self, const char* content)
 {
     // LOG ("Adding member <%s>\n", content);
 
-    uint32_t key = self->hash_func(content) % (uint32_t) self->size;
+    uint32_t key = self->hash_func(content, strlen(content)) % (uint32_t) self->size;
 
     if (SearchMember (self, key, content) == NOT_FOUND)
     {
@@ -152,7 +120,6 @@ HashTableNode* CreateNode (const char content[])
     new_node->length  = strlen (content);
     new_node->peers   = 1;                  // initially, node is the only peer in the cell
     new_node->next    = nullptr;
-    new_node->is_head = false;
 
     return new_node;
 }
@@ -190,7 +157,6 @@ void DumpTable (HashTable* self, int dump_size)
     printf ("Hash Table Dump\n");
     printf ("====================================\n");
 
-    printf ("Hash function code: %d\n", self->hash_code);
     printf ("Size: %lu\n", self->size);
     printf (">>> Elements\n");
 
@@ -235,24 +201,24 @@ void DumpTableInCsv (HashTable* self, FILE* csv_file)
 // All sort of Hashes ---------------------------------------
 // ==========================================================
 
-uint32_t OneHash (const char* /* string */)
+uint32_t OneHash (const char* /* string */, int len)
 {
     return 1;
 }
 
-uint32_t FirstLetterHash (const char* string)
+uint32_t FirstLetterHash (const char* string, int len)
 {
     return (uint32_t) string[0];
 }
 
 
-uint32_t LengthHash (const char* string)
+uint32_t LengthHash (const char* string, int len)
 {
-    return (uint32_t) strlen(string);
+    return (uint32_t) len;
 }
 
 
-uint32_t SumHash (const char* string)
+uint32_t SumHash (const char* string, int len)
 {
     uint32_t hashsum = 0;
 
@@ -276,7 +242,7 @@ uint32_t RolFunc (int num, int shift)   // 10011000 ----> 0011001
     return (num << shift) | (num >> (32 - shift));
 }
 
-uint32_t RolHash (const char* str)
+uint32_t RolHash (const char* str, int len)
 {
     uint32_t hash  = 0;
     size_t   index = 0;
@@ -290,7 +256,7 @@ uint32_t RolHash (const char* str)
     return hash;
 }
 
-uint32_t RorHash (const char* str)
+uint32_t RorHash (const char* str, int len)
 {
     unsigned int hash  = 0;
     size_t       index = 0;
@@ -305,12 +271,11 @@ uint32_t RorHash (const char* str)
 }
 
 
-uint32_t MurMurMurHash (const char* data)
+uint32_t MurMurMurHash (const char* data, int len)
 {
     const unsigned int salt = 0x5bd1e995;
     const unsigned int seed = 0;
     const int offst = 24;
-    size_t len = strlen(data);
 
     unsigned int hash = seed ^ len;
 

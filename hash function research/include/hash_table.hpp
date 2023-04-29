@@ -26,15 +26,13 @@ struct HashTableNode
     size_t length;
     uint32_t peers;
     HashTableNode* next;
-    bool is_head;
 };
 
 struct HashTable
 {
     HashTableNode* array;
     size_t size;
-    uint32_t (*hash_func) (const char*);
-    enum HASH_FUNC_CODES hash_code;
+    uint32_t (*hash_func) (const char*, int len);
 };
 
 
@@ -46,6 +44,8 @@ enum RETURN_CODES
     ALREADY_EXISTS,
 
 };
+
+const int HASHF_AMOUNT = 7;
 
 //========================================================
 
@@ -72,13 +72,13 @@ int LoadData (Text* DataStruct, HashTable* self);
 
 void DumpTableInCsv (HashTable* self, FILE* csv_file);
 
-void HashTableCtor (HashTable* self, size_t size, HASH_FUNC_CODES hash_code);
+void HashTableCtor (HashTable* self, size_t size, uint32_t (*hash_func) (const char* data, int len));
 
 bool SearchMember (HashTable* self, uint32_t key, const char content[]);
 
 void HashTableDtor (HashTable* self);
 
-int FreeRecurs(HashTableNode* cur_node);
+int FreeRecurs(HashTableNode* cur_node, bool begin);
 
 HashTableNode* CreateNode (const char content[]);
 
@@ -86,21 +86,21 @@ int AddMember (HashTable* self, const char* content);
 
 void DumpTable (HashTable* self, int dump_size);
 
-uint32_t OneHash (const char* string);
+uint32_t OneHash (const char* string, int len);
 
-uint32_t FirstLetterHash (const char* string);
+uint32_t FirstLetterHash (const char* string, int len);
 
-uint32_t LengthHash (const char* string);
+uint32_t LengthHash (const char* string, int len);
 
-uint32_t SumHash (const char* string);
+uint32_t SumHash (const char* string, int len);
 
 uint32_t RorFunc (int num, int shift);
 
 uint32_t RolFunc (int num, int shift);
 
-uint32_t RolHash (const char* str);
+uint32_t RolHash (const char* str, int len);
 
-uint32_t RorHash (const char* str);
+uint32_t RorHash (const char* str, int len);
 
-uint32_t MurMurMurHash (const char* str);
+uint32_t MurMurMurHash (const char* str, int len);
 #endif
